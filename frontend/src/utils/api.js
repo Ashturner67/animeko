@@ -21,15 +21,48 @@ const getBaseURL = () => {
 const API_BASE_URL = getBaseURL();
 
 // Debug logging (only in development)
-// if (import.meta.env.DEV) {
-//   console.log('🔧 Development mode - using Vite proxy:', API_BASE_URL);
-// } else {
-//   console.log('🚀 Production mode - API URL:', API_BASE_URL);
-// }
+if (import.meta.env.DEV) {
+  console.log('🔧 Development mode - API calls will proxy to backend');
+  console.log('🔧 API Base URL:', API_BASE_URL);
+} else {
+  console.log('🚀 Production mode - API URL:', API_BASE_URL);
+  // Check if backend URL is properly configured
+  if (!import.meta.env.VITE_BACKEND_URL) {
+    console.warn('⚠️ VITE_BACKEND_URL not set! API calls may fail in production.');
+  }
+}
+
+// Utility function to check authentication status
+export const checkAuthStatus = () => {
+  const token = localStorage.getItem('token');
+  const isLoggedIn = !!token;
+  
+  if (import.meta.env.DEV) {
+    console.log('🔒 Auth Status Check:');
+    console.log('  - Token present:', isLoggedIn);
+    console.log('  - API Base URL:', API_BASE_URL);
+    if (token) {
+      try {
+        // Decode JWT to check expiry (basic check)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const isExpired = payload.exp * 1000 < Date.now();
+        console.log('  - Token expired:', isExpired);
+        console.log('  - Token expires at:', new Date(payload.exp * 1000));
+      } catch (e) {
+        console.log('  - Token format invalid');
+      }
+    }
+  }
+  
+  return { isLoggedIn, token, apiBaseUrl: API_BASE_URL };
+};
 
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
+  if (!token && import.meta.env.DEV) {
+    console.log('🔒 No auth token found in localStorage');
+  }
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
@@ -47,7 +80,8 @@ export const apiCall = async (endpoint, options = {}) => {
 
   const config = {
     ...options,
-    headers
+    headers,
+    credentials: 'include' // Always include credentials for CORS
   };
 
   try {
@@ -71,6 +105,9 @@ export const apiCall = async (endpoint, options = {}) => {
       switch (response.status) {
         case 401:
           // Unauthorized - token might be expired
+          console.error('🔒 Authentication failed:', errorData.message || 'Missing or invalid token');
+          console.error('🔒 Request URL:', url);
+          console.error('🔒 Auth headers:', headers.Authorization ? 'Present' : 'Missing');
           localStorage.removeItem('token');
           throw new AuthError(errorData.message || 'Authentication required');
         
