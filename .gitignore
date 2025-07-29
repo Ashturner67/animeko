@@ -1,7 +1,29 @@
 # Node.js
 node_modules/
 build/
+
+# Environment files - KEEP .env.example for documentation
 .env
+.env.development
+.env.production
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# Frontend environment files (keep .env.example)
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+frontend/.env.test.local
+
+# Backend environment files
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.production.local
+backend/.env.test.local
 
 #Project Related Suggestions
 project_review/
