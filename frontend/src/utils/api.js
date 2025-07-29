@@ -2,6 +2,8 @@
 
 // Use environment variable or relative URL for production
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+console.log('VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
+
 
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {
