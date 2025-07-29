@@ -41,7 +41,7 @@ const PORT = process.env.PORT || 5000;
 // Enable CORS for requests from your frontend
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true,
 };
 app.use(cors(corsOptions));
@@ -95,6 +95,6 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
     subscriptionExpiryJob.start();
 });
