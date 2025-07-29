@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../../utils/api';
 
 const CompanyTab = ({searchQuery}) => {
     const {token} = useAuth();
@@ -19,11 +20,7 @@ const CompanyTab = ({searchQuery}) => {
 
     const fetchCompanies = async () => {
         try {
-            const response = await fetch('/api/company');
-            if (!response.ok) {
-                throw new Error('Failed to fetch companies');
-            }
-            const data = await response.json();
+            const data = await apiCall('/company');
             // Normalize IDs
             const formattedData = Array.isArray(data)
                 ? data.map(company => ({
@@ -149,17 +146,11 @@ const CompanyTab = ({searchQuery}) => {
                 showError('Invalid company ID format');
                 return;
             }
-            const response = await fetch(`/api/company/${companyId}`, {
-                method: 'DELETE',
+            await apiDelete(`/company/${companyId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                showError(errorData.message || 'Failed to delete company');
-                return;
-            }
             await fetchCompanies();
             setError('');
         } catch (err) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiPost } from '../utils/api';
 
 const YouTubePlayer = ({ 
     videoId, 
@@ -32,25 +33,18 @@ const YouTubePlayer = ({
         };
 
         try {
-            const response = await fetch('/api/watch/progress', {
-                method: 'POST',
+            const data = await apiPost('/watch/progress', payload, {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
+                }
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (onProgress) {
-                    onProgress(timestampPosition, watchedPercentage, data.completed);
-                }
-                
-                if (data.completed && onComplete) {
-                    onComplete();
-                }
+            
+            if (onProgress) {
+                onProgress(timestampPosition, watchedPercentage, data.completed);
+            }
+            
+            if (data.completed && onComplete) {
+                onComplete();
             }
         } catch (err) {
             console.error('Error saving progress:', err);

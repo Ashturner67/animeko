@@ -21,11 +21,11 @@ const getBaseURL = () => {
 const API_BASE_URL = getBaseURL();
 
 // Debug logging (only in development)
-if (import.meta.env.DEV) {
-  console.log('🔧 Development mode - using Vite proxy:', API_BASE_URL);
-} else {
-  console.log('🚀 Production mode - API URL:', API_BASE_URL);
-}
+// if (import.meta.env.DEV) {
+//   console.log('🔧 Development mode - using Vite proxy:', API_BASE_URL);
+// } else {
+//   console.log('🚀 Production mode - API URL:', API_BASE_URL);
+// }
 
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {
@@ -275,4 +275,69 @@ export const searchUsers = (username) => {
 export const searchContent = (type, params) => {
   const queryParams = new URLSearchParams({ type, ...params });
   return apiCall(`/search?${queryParams}`);
+};
+
+// Anime-specific API functions
+export const fetchAnime = (animeId) => {
+  return apiCall(`/anime/${animeId}`);
+};
+
+export const fetchAnimeRating = (animeId) => {
+  return apiCall(`/anime/${animeId}/rating`);
+};
+
+export const fetchAnimeReviews = (animeId) => {
+  return apiCall(`/anime/${animeId}/reviews`);
+};
+
+export const fetchAnimeLibraryStatus = (animeId) => {
+  return apiCall(`/anime-library/${animeId}`);
+};
+
+export const updateAnimeLibraryStatus = (animeId, data) => {
+  return apiCall(`/anime-library/${animeId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  });
+};
+
+export const addToAnimeLibrary = (animeId, status) => {
+  return apiPost('/anime-library', { animeId, status });
+};
+
+export const removeFromAnimeLibrary = (animeId) => {
+  return apiDelete(`/anime-library/${animeId}`);
+};
+
+export const fetchFavorites = () => {
+  return apiCall('/favorites');
+};
+
+export const toggleFavorite = (entityType, entityId, note = null) => {
+  return apiPost('/favorites', { entityType, entityId, note });
+};
+
+export const fetchEpisodes = (animeId) => {
+  return apiCall(`/episodes/anime/${animeId}`);
+};
+
+export const fetchWatchHistory = (animeId = null) => {
+  const params = animeId ? `?animeId=${animeId}` : '';
+  return apiCall(`/watch/history${params}`);
+};
+
+export const submitAnimeReview = (animeId, reviewData) => {
+  return apiPost(`/anime/${animeId}/review`, reviewData);
+};
+
+export const updateAnimeReview = (animeId, reviewData) => {
+  return apiCall(`/anime/${animeId}/review`, {
+    method: 'PUT',
+    body: JSON.stringify(reviewData)
+  });
+};
+
+export const fetchReviewReactions = (reviewIds) => {
+  const ids = Array.isArray(reviewIds) ? reviewIds.join(',') : reviewIds;
+  return apiCall(`/reviews/user-reactions?reviewIds=${ids}`);
 };

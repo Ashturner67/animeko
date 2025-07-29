@@ -1,6 +1,7 @@
 // frontend/src/contexts/AuthContext.js
 import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import {jwtDecode} from 'jwt-decode';
+import { apiCall, apiPost, AuthError } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -54,26 +55,7 @@ const AuthProvider = ({children}) => {
 
         try {
             setError(null);
-            const response = await fetch('/api/auth/profile', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Profile fetch error:', errorData);
-
-                if (response.status === 401 || response.status === 403) {
-                    logout();
-                    throw new Error(errorData.message || 'Session expired. Please login again.');
-                }
-                throw new Error(errorData.message || 'Failed to fetch user profile');
-            }
-
-            const userData = await response.json();
+            const userData = await apiCall('/auth/profile');
 
             // CRITICAL: Preserve is_admin from JWT token, don't trust API response
             const decoded = jwtDecode(token);
@@ -136,20 +118,7 @@ const AuthProvider = ({children}) => {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({username, password})
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Login failed. Please check your credentials.');
-            }
-
-            const data = await response.json();
+            const data = await apiPost('/auth/login', { username, password });
             
             // Store the token and user data from the response
             setToken(data.token);
@@ -191,17 +160,7 @@ const AuthProvider = ({children}) => {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('/api/auth/register', {
-                method: 'POST', headers: {
-                    'Content-Type': 'application/json'
-                }, body: JSON.stringify(userData)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
-            }
+            const data = await apiPost('/auth/register', userData);
 
             return data;
         } catch (error) {
@@ -217,17 +176,10 @@ const AuthProvider = ({children}) => {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('/api/auth/profile', {
-                method: 'PUT', headers: {
-                    'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`
-                }, body: JSON.stringify(profileData)
+            const data = await apiCall('/auth/profile', {
+                method: 'PUT',
+                body: JSON.stringify(profileData)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Profile update failed');
-            }
 
             // Preserve is_admin from token when updating
             const decoded = jwtDecode(token);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall, apiPost, apiDelete } from '../utils/api';
 import '../styles/FriendshipButton.css';
 
 const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => {
@@ -19,16 +20,13 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
 
     const fetchFriendshipStatus = async () => {
         try {
-            const response = await fetch(`/api/friends/status/${targetUserId}`, {
+            const data = await apiCall(`/friends/status/${targetUserId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setStatus(data.status);
-                if (onStatusChange) {
-                    onStatusChange(data.status);
-                }
+            setStatus(data.status);
+            if (onStatusChange) {
+                onStatusChange(data.status);
             }
         } catch (err) {
             console.error('Error fetching friendship status:', err);
@@ -40,37 +38,33 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
         setError('');
 
         try {
-            let response;
+            let responseData;
             
             switch (action) {
                 case 'send_request':
-                    response = await fetch('/api/friends/requests', {
-                        method: 'POST',
+                    responseData = await apiPost('/friends/requests', {
+                        addresseeId: parseInt(targetUserId)
+                    }, {
                         headers: {
-                            'Content-Type': 'application/json',
                             Authorization: `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ addresseeId: parseInt(targetUserId) })
+                        }
                     });
                     break;
 
                 case 'cancel_request':
-                    response = await fetch(`/api/friends/requests/${targetUserId}`, {
-                        method: 'DELETE',
+                    responseData = await apiDelete(`/friends/requests/${targetUserId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     break;
 
                 case 'accept_request':
-                    response = await fetch(`/api/friends/requests/${targetUserId}/accept`, {
-                        method: 'POST',
+                    responseData = await apiPost(`/friends/requests/${targetUserId}/accept`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     break;
 
                 case 'reject_request':
-                    response = await fetch(`/api/friends/requests/${targetUserId}/reject`, {
-                        method: 'POST',
+                    responseData = await apiPost(`/friends/requests/${targetUserId}/reject`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     break;
@@ -81,8 +75,7 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
                         setLoading(false);
                         return;
                     }
-                    response = await fetch(`/api/friends/${targetUserId}`, {
-                        method: 'DELETE',
+                    responseData = await apiDelete(`/friends/${targetUserId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     break;
@@ -91,13 +84,9 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
                     throw new Error('Invalid action');
             }
 
-            if (response.ok) {
-                // Refresh friendship status
-                await fetchFriendshipStatus();
-            } else {
-                const errorData = await response.json();
-                setError(errorData.message || 'Action failed');
-            }
+            // Success - update status based on action
+            // Refresh friendship status
+            await fetchFriendshipStatus();
         } catch (err) {
             console.error('Error performing friendship action:', err);
             setError(err.message || 'Action failed');

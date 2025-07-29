@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../../utils/api';
 
 const GenreTab = ({searchQuery}) => {
     const {token} = useAuth();
@@ -20,14 +21,7 @@ const GenreTab = ({searchQuery}) => {
         console.log('Fetching genres...');
         setLoading(true);
         try {
-            const response = await fetch('/api/genre');
-            console.log('Genres response status:', response.status);
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Failed to fetch genres:', errorText);
-                throw new Error('Failed to fetch genres');
-            }
-            const data = await response.json();
+            const data = await apiCall('/genre');
             console.log('Fetched genres:', data);
             
             const formattedData = Array.isArray(data)
@@ -189,22 +183,12 @@ const GenreTab = ({searchQuery}) => {
             }
             
             console.log(`Sending DELETE request for genre ID: ${genreId}`);
-            const response = await fetch(`/api/genre/${genreId}`, {
-                method: 'DELETE',
+            await apiDelete(`/genre/${genreId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            const responseData = await response.json().catch(() => ({}));
-            console.log('Delete response:', { status: response.status, data: responseData });
-
-            if (!response.ok) {
-                const errorMsg = responseData.message || 'Failed to delete genre';
-                console.error('Delete failed:', errorMsg);
-                throw new Error(errorMsg);
-            }
 
             console.log('Genre deleted successfully, refreshing list...');
             await fetchGenres();

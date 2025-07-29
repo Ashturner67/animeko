@@ -2,6 +2,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../contexts/AuthContext';
+import { apiCall, fetchFavorites, toggleFavorite } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/VAPage.css';
 
@@ -17,11 +18,7 @@ export default function VAPage() {
 
     // fetch VA details
     useEffect(() => {
-        fetch(`/api/voice-actors/${vaId}`)
-            .then(r => {
-                if (!r.ok) throw new Error(r.status);
-                return r.json();
-            })
+        apiCall(`/voice-actors/${vaId}`)
             .then(setVa)
             .catch(err => {
                 console.error('Fetch VA error:', err);
@@ -32,10 +29,7 @@ export default function VAPage() {
     // fetch favorites
     useEffect(() => {
         if (!token) return;
-        fetch('/api/favorites', {
-            headers: {Authorization: `Bearer ${token}`}
-        })
-            .then(r => r.json())
+        fetchFavorites()
             .then(favs => {
                 setIsFavorite(favs.some(f => f.entityType === 'voice_actor' && +f.entityId === +vaId));
             })
@@ -43,22 +37,11 @@ export default function VAPage() {
     }, [vaId, token]);
 
     // toggle favorite
-    const toggleFavorite = () => {
+    const handleToggleFavorite = () => {
         if (!token) return;
         setFavLoading(true);
-        fetch('/api/favorites', {
-            method: 'POST', 
-            headers: {
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}`
-            }, 
-            body: JSON.stringify({ 
-                entityType: 'voice_actor',
-                entityId: +vaId 
-            })
-        })
-            .then(r => r.json())
-            .then(data => setIsFavorite(data.favorite))
+        toggleFavorite('voice_actor', vaId)
+            .then(data => setIsFavorite(data.action === 'added'))
             .catch(console.error)
             .finally(() => setFavLoading(false));
     };
@@ -101,7 +84,7 @@ export default function VAPage() {
                     <h2 className="va-name wrap-name">{name}</h2>
                     <button
                         className={`favorite-btn ${isFavorite ? 'favorited' : ''}`}
-                        onClick={toggleFavorite}
+                        onClick={handleToggleFavorite}
                         disabled={favLoading}
                     >
                         <div className="favorite-icon">{isFavorite ? '❤️' : '🤍'}</div>

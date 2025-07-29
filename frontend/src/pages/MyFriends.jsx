@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiCall, apiPost, apiDelete } from '../utils/api';
 import placeholderImg from '../images/image_not_available.jpg';
 import defaultAvatar from '../images/default_avatar.svg';
 import Recommendations from '../components/Recommendations';
@@ -32,26 +33,16 @@ export default function MyFriends() {
                 setLoading(true);
                 setError('');
 
-                const [incomingRes, friendsRes, sentRes] = await Promise.all([
-                    fetch('/api/friends/requests', {
+                const [incomingData, friendsData, sentData] = await Promise.all([
+                    apiCall('/friends/requests', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('/api/friends', {
+                    apiCall('/friends', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('/api/friends/requests/sent', {
+                    apiCall('/friends/requests/sent', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
-                ]);
-
-                if (!incomingRes.ok) throw new Error('Failed to load friend requests');
-                if (!friendsRes.ok) throw new Error('Failed to load friends list');
-                if (!sentRes.ok) throw new Error('Failed to load sent requests');
-
-                const [incomingData, friendsData, sentData] = await Promise.all([
-                    incomingRes.json(),
-                    friendsRes.json(),
-                    sentRes.json()
                 ]);
 
                 setIncoming(Array.isArray(incomingData) ? incomingData : []);
@@ -80,13 +71,10 @@ export default function MyFriends() {
             }
 
             try {
-                const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+                const data = await apiCall(`/users/search?q=${encodeURIComponent(query)}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!response.ok) throw new Error('Search failed');
-                
-                const data = await response.json();
                 if (!isMounted) return;
                 
                 if (!Array.isArray(data)) {
@@ -118,8 +106,7 @@ export default function MyFriends() {
     // Handle friend request response
     const respondRequest = async (requesterId, action) => {
         try {
-            const response = await fetch(`/api/friends/requests/${requesterId}/${action}`, {
-                method: 'POST',
+            await apiPost(`/friends/requests/${requesterId}/${action}`, {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -127,28 +114,22 @@ export default function MyFriends() {
                 credentials: 'include'
             });
 
-            const responseData = await response.json().catch(() => ({}));
-            
-            if (!response.ok) {
-                throw new Error(responseData.message || 'Failed to respond to friend request');
-            }
-
             // Update UI to remove the request
             setIncoming(prev => prev.filter(r => r.user_id !== requesterId));
 
             // If request was accepted, update friends list
             if (action === 'accept') {
-                const friendsResponse = await fetch('/api/friends', {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                });
-                
-                if (friendsResponse.ok) {
-                    const friendsData = await friendsResponse.json();
+                try {
+                    const friendsData = await apiCall('/friends', {
+                        headers: { 
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        credentials: 'include'
+                    });
+                    
                     setFriends(friendsData);
+                } catch (error) {
+                    console.error('Error refreshing friends list:', error);
                 }
             }
         } catch (error) {
@@ -160,23 +141,15 @@ export default function MyFriends() {
     // Send friend request
     const sendFriendRequest = async (toUserId) => {
         try {
-            const response = await fetch(`/api/friends/requests`, {
-                method: 'POST',
+            await apiPost('/friends/requests', {
+                addresseeId: toUserId
+            }, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                credentials: 'include',
-                body: JSON.stringify({
-                    addresseeId: toUserId
-                }),
+                credentials: 'include'
             });
-
-            const responseData = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(responseData.message || 'Failed to send friend request');
-            }
 
             // Update UI to show request sent
             setSearchResults(prev => 
@@ -202,8 +175,7 @@ export default function MyFriends() {
         }
 
         try {
-            const response = await fetch(`/api/friends/${friendId}`, {
-                method: 'DELETE',
+            await apiDelete(`/friends/${friendId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -211,26 +183,20 @@ export default function MyFriends() {
                 credentials: 'include'
             });
 
-            const responseData = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(responseData.message || `Server responded with ${response.status}`);
-            }
-
             // Update friends list
-            const friendsResponse = await fetch('/api/friends', {
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
+            try {
+                const friendsData = await apiCall('/friends', {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    credentials: 'include'
+                });
 
-            if (friendsResponse.ok) {
-                const friendsData = await friendsResponse.json();
                 setFriends(friendsData);
                 setSendMessage('Friend removed successfully');
                 setTimeout(() => setSendMessage(''), 3000);
+            } catch (error) {
+                console.error('Error refreshing friends list:', error);
             }
         } catch (error) {
             console.error('Remove friend failed:', error);
@@ -245,20 +211,13 @@ export default function MyFriends() {
         }
 
         try {
-            const response = await fetch(`/api/friends/requests/${addresseeId}`, {
-                method: 'DELETE',
+            await apiDelete(`/friends/requests/${addresseeId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include'
             });
-
-            const responseData = await response.json().catch(() => ({}));
-
-            if (!response.ok) {
-                throw new Error(responseData.message || `Server responded with ${response.status}`);
-            }
 
             // Update UI to reflect cancellation
             setSearchResults(prev => 

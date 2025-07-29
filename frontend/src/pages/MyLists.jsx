@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {AuthContext} from '../contexts/AuthContext';
 import {useTheme} from '../contexts/ThemeContext';
+import { apiCall, apiPost } from '../utils/api';
 import ListCard from '../components/ListCard';
 
 function MyLists() {
@@ -13,15 +14,10 @@ function MyLists() {
     useEffect(() => {
         const fetchLists = async () => {
             try {
-                const response = await fetch('/api/lists', {
+                const data = await apiCall('/lists', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
                 console.log('Fetched lists:', data);
                 
                 if (Array.isArray(data)) {
@@ -47,21 +43,13 @@ function MyLists() {
         if (!title) return;
 
         try {
-            const response = await fetch('/api/lists', {
-                method: 'POST',
+            const createdList = await apiPost('/lists', {
+                title
+            }, {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({title})
+                }
             });
-
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.message || 'Failed to create list');
-            }
-
-            const createdList = await response.json();
 
             // Redirect to the new list's detail page
             window.location.href = `/lists/${createdList.id}`;

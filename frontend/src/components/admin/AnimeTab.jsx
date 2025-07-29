@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../../utils/api';
 import { X } from 'react-feather'; // For the close icon in selected tags
 import '../../styles/AnimeImageInput.css';
 import '../../styles/AdminDropdowns.css';
@@ -59,19 +60,16 @@ const AnimeTab = ({searchQuery}) => {
     
     const fetchGenres = async () => {
         try {
-            const response = await fetch('/api/genre');
-            if (response.ok) {
-                const data = await response.json();
-                // Normalize the genre data structure
-                const normalizedGenres = Array.isArray(data) 
-                    ? data.map(g => ({
-                        id: g.id || g.genre_id,
-                        genre_id: g.genre_id || g.id,
-                        name: g.name || g.genre_name || 'Unnamed Genre'
-                    }))
-                    : [];
-                setGenres(normalizedGenres);
-            }
+            const data = await apiCall('/genre');
+            // Normalize the genre data structure
+            const normalizedGenres = Array.isArray(data) 
+                ? data.map(g => ({
+                    id: g.id || g.genre_id,
+                    genre_id: g.genre_id || g.id,
+                    name: g.name || g.genre_name || 'Unnamed Genre'
+                }))
+                : [];
+            setGenres(normalizedGenres);
         } catch (err) {
             console.error('Error fetching genres:', err);
             showError('Failed to load genres');
@@ -116,17 +114,12 @@ const AnimeTab = ({searchQuery}) => {
     const fetchAnime = async () => {
         try {
             console.log('Fetching anime list...');
-            const response = await fetch('/api/animes/admin', {
+            const data = await apiCall('/animes/admin', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error('Failed to fetch anime list: ' + errorText);
-            }
-            const data = await response.json();
             console.log(data);
             
             setAnimeList(Array.isArray(data) ? data : []);
@@ -141,12 +134,7 @@ const AnimeTab = ({searchQuery}) => {
     const fetchCompanies = async () => {
         try {
             console.log('Fetching companies...');
-            const response = await fetch('/api/company');
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error('Failed to fetch companies: ' + errorText);
-            }
-            const data = await response.json();
+            const data = await apiCall('/company');
             
             // Log sample company data
             if (Array.isArray(data) && data.length > 0) {
@@ -322,18 +310,12 @@ const AnimeTab = ({searchQuery}) => {
             setEditingId(animeId);
 
             // Fetch detailed anime data
-            const response = await fetch(`/api/animes/${animeId}/details`, {
+            const detailedAnime = await apiCall(`/animes/${animeId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch anime details');
-            }
-
-            const detailedAnime = await response.json();
 
             // Update form data with detailed information
             setFormData({
@@ -375,19 +357,12 @@ const AnimeTab = ({searchQuery}) => {
                 throw new Error('Invalid anime ID format');
             }
 
-            const response = await fetch(`/api/animes/${animeId}`, {
-                method: 'DELETE',
+            await apiDelete(`/animes/${animeId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                showError(errorData.message || 'Failed to delete anime');
-                return;
-            }
 
             // Refresh the list after successful deletion
             await fetchAnime();

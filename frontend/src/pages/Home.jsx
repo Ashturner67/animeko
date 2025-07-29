@@ -4,6 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import AnimeCard from '../components/AnimeCard';
 import ContinueWatching from '../components/ContinueWatching';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall } from '../utils/api';
 
 // import the extracted styles
 import '../styles/Home.css';
@@ -33,10 +34,7 @@ function Home() {
             return;
         }
 
-        fetch('/api/favorites', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(r => r.json())
+        apiCall('/favorites')
             .then(favs => {
                 setFavorites(favs);
             })
@@ -48,9 +46,7 @@ function Home() {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`/api/animes?sortField=${sortField}&sortOrder=${sortOrder}`);
-                if (!response.ok) throw new Error(`Status ${response.status}`);
-                const data = await response.json();
+                const data = await apiCall(`/animes?sortField=${sortField}&sortOrder=${sortOrder}`);
                 setAnimeList(data);
             } catch (err) {
                 setError(`Failed to fetch anime: ${err.message}`);

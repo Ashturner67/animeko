@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme
+import { apiPost } from '../utils/api';
 import '../styles/PaymentConfirmationPage.css';
 
 const PaymentConfirmationPage = () => {
@@ -48,27 +49,17 @@ const PaymentConfirmationPage = () => {
 
               // Confirm payment with our backend
               try {
-                const confirmResponse = await fetch('/api/subscriptions/confirm-payment', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    transactionId: transactionId,
-                    isPaid: true,
-                    completedOn: data.transactionDetails.completed_on,
-                  }),
+                const confirmData = await apiPost('/subscriptions/confirm-payment', {
+                  transactionId: transactionId,
+                  isPaid: true,
+                  completedOn: data.transactionDetails.completed_on,
                 });
-
-                if (!confirmResponse.ok) {
-                  const errorData = await confirmResponse.json();
-                  console.error('Failed to confirm payment with backend:', errorData.message);
-                  // Optionally, handle this error in the UI
-                }
+                
+                console.log('Payment confirmed with backend:', confirmData);
               } catch (error) {
                 console.error('Error confirming payment with backend:', error);
+                // Optionally, handle this error in the UI
               }
-
             } else if (data.transactionDetails.status && data.transactionDetails.status.toLowerCase().trim() === 'failed') {
               setStatus('failed');
               clearInterval(intervalId);

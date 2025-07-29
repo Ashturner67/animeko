@@ -1,5 +1,6 @@
 import {Link, useParams} from 'react-router-dom';
 import {useEffect, useState} from 'react';
+import { apiCall } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/CompanyPage.css';
 import { useTheme } from '../contexts/ThemeContext';
@@ -12,20 +13,19 @@ export default function CompanyPage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch(`/api/company/${companyId}`)
-            .then(res => {
-                if (!res.ok) throw new Error(`Status ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
+        const fetchCompany = async () => {
+            try {
+                const data = await apiCall(`/company/${companyId}`);
                 setCompany(data);
                 setLoading(false);
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error('Fetch company error:', err);
                 setError('Failed to load company');
                 setLoading(false);
-            });
+            }
+        };
+        
+        fetchCompany();
     }, [companyId]);
 
     if (loading) return <div className="spinner-container">

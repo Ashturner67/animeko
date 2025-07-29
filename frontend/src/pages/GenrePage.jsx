@@ -1,5 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { apiCall } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/GenrePage.css';
 import { useTheme } from '../contexts/ThemeContext';
@@ -19,14 +20,10 @@ export default function GenrePage() {
                 setLoading(true);
                 
                 // 1. Fetch genre details
-                const genreRes = await fetch(`/api/genre/${genreId}`);
-                if (!genreRes.ok) throw new Error(`Status ${genreRes.status}`);
-                const genreData = await genreRes.json();
+                const genreData = await apiCall(`/genre/${genreId}`);
                 
                 // 2. Fetch anime by genre
-                const animeRes = await fetch(`/api/animes?genre=${encodeURIComponent(genreData.name)}`);
-                if (!animeRes.ok) throw new Error(`Status ${animeRes.status}`);
-                const animeData = await animeRes.json();
+                const animeData = await apiCall(`/animes?genre=${encodeURIComponent(genreData.name)}`);
                 
                 setGenre(genreData);
                 setAnimeList(Array.isArray(animeData) ? animeData : []);

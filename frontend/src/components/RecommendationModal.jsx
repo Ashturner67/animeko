@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall, apiPost } from '../utils/api';
 import defaultAvatar from '../images/default_avatar.svg';
 import '../styles/RecommendationModal.css';
 
@@ -38,15 +39,10 @@ const RecommendationModal = ({ anime, onClose, onRecommendationSent }) => {
         const fetchFriends = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/friends', {
+                const friendsData = await apiCall('/friends', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to load friends');
-                }
-
-                const friendsData = await response.json();
                 setFriends(Array.isArray(friendsData) ? friendsData : []);
             } catch (err) {
                 console.error('Error fetching friends:', err);
@@ -96,19 +92,11 @@ const RecommendationModal = ({ anime, onClose, onRecommendationSent }) => {
 
             console.log('Request body:', requestBody);
 
-            const response = await fetch('/api/recommendations', {
-                method: 'POST',
+            await apiPost('/recommendations', requestBody, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
+                    'Authorization': `Bearer ${token}`
+                }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to send recommendation');
-            }
 
             // Call the success callback
             if (onRecommendationSent) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall } from '../utils/api';
 import AnimeCard from '../components/AnimeCard';
 import ListCard from '../components/ListCard';
 import CastCard from '../components/CastCard';
@@ -59,18 +60,10 @@ function SearchResultsPage() {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
                 
-                const response = await fetch(`/api/search?${params.toString()}`, {
+                const data = await apiCall(`/search?${params.toString()}`, {
                     headers: headers
                 });
                 
-                if (!response.ok) {
-                    if (response.status === 401 && type === 'user') {
-                        throw new Error('Please log in to search for other users');
-                    }
-                    throw new Error(`Status ${response.status}`);
-                }
-                
-                const data = await response.json();
                 setResults(data);
             } catch (err) {
                 setError(`Failed to fetch search results: ${err.message}`);

@@ -3,6 +3,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import defaultAvatar from '../images/default_avatar.svg';
 import ListCard from '../components/ListCard';
@@ -219,11 +220,7 @@ export default function AnimePage() {
     // 1) Fetch anime details
     // ───────────────────────────────────────────────────
     useEffect(() => {
-        fetch(`/api/anime/${animeId}`)
-            .then((r) => {
-                if (!r.ok) throw new Error(`Status ${r.status}`);
-                return r.json();
-            })
+        apiCall(`/anime/${animeId}`)
             .then(setAnime)
             .catch((err) => {
                 console.error('Fetch anime error:', err);
@@ -235,14 +232,7 @@ export default function AnimePage() {
     // 2) Fetch average rating & rank
     // ───────────────────────────────────────────────────
     useEffect(() => {
-        fetch(`/api/anime/${animeId}/rating`)
-            .then((r) => {
-                if (!r.ok) {
-                    if (r.status !== 404) console.error('Rating fetch error', r.status);
-                    return {averageRating: null, rank: null};
-                }
-                return r.json();
-            })
+        apiCall(`/anime/${animeId}/rating`)
             .then((data) => {
                 setAverageRating(data.averageRating);
                 setRank(data.rank);
@@ -259,10 +249,9 @@ export default function AnimePage() {
     // ───────────────────────────────────────────────────
     useEffect(() => {
         if (!token) return;
-        fetch('/api/favorites', {
+        apiCall('/favorites', {
             headers: {Authorization: `Bearer ${token}`},
         })
-            .then((r) => r.json())
             .then((favs) => {
                 const exists = favs.some((f) => f.entityType === 'anime' && +f.entityId === +animeId);
                 setIsFavorite(exists);
@@ -283,16 +272,9 @@ export default function AnimePage() {
         let isMounted = true;
         setLibraryLoading(true);
         
-        fetch(`/api/anime-library/${animeId}`, {
+        apiCall(`/anime-library/${animeId}`, {
             headers: { Authorization: `Bearer ${token}` },
         })
-            .then((r) => {
-                if (!r.ok) {
-                    if (r.status === 404) return { status: null }; // Not in library
-                    throw new Error(`Status ${r.status}`);
-                }
-                return r.json();
-            })
             .then((data) => {
                 if (isMounted) {
                     setLibraryStatus(data.status);
@@ -301,8 +283,12 @@ export default function AnimePage() {
             .catch((err) => {
                 if (isMounted) {
                     console.error('Fetch library status error:', err);
-                    setLibraryError('Failed to load library status.');
-                    setLibraryStatus(null);
+                    if (err.message && err.message.includes('404')) {
+                        setLibraryStatus(null); // Not in library
+                    } else {
+                        setLibraryError('Failed to load library status.');
+                        setLibraryStatus(null);
+                    }
                 }
             })
             .finally(() => {
@@ -320,12 +306,14 @@ export default function AnimePage() {
     const handleToggleFavorite = () => {
         if (!token) return;
         setFavLoading(true);
-        fetch('/api/favorites', {
-            method: 'POST', headers: {
-                'Content-Type': 'application/json', Authorization: `Bearer ${token}`,
-            }, body: JSON.stringify({entityType: 'anime', entityId: +animeId}),
+        apiPost('/favorites', {
+            entityType: 'anime', 
+            entityId: +animeId
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
         })
-            .then((r) => r.json())
             .then((data) => {
                 setIsFavorite(data.favorite);
             })
@@ -338,18 +326,14 @@ export default function AnimePage() {
         if (!token || libraryLoading) return;
         setLibraryLoading(true);
         try {
-            const res = await fetch('/api/anime-library', {
-                method: 'POST',
+            const data = await apiPost('/anime-library', {
+                animeId: +animeId, 
+                status
+            }, {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ animeId: +animeId, status }),
+                }
             });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to add anime to library');
-            }
             setLibraryStatus(status);
             setShowStatusDropdown(false);
             setLibraryError(null);
@@ -366,18 +350,13 @@ export default function AnimePage() {
         if (!token || libraryLoading) return;
         setLibraryLoading(true);
         try {
-            const res = await fetch(`/api/anime-library/${animeId}`, {
-                method: 'PUT',
+            const data = await apiPut(`/anime-library/${animeId}`, {
+                status: newStatus
+            }, {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ status: newStatus }),
+                }
             });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to update library status');
-            }
             setLibraryStatus(newStatus);
             setShowStatusDropdown(false);
             setLibraryError(null);
@@ -394,16 +373,11 @@ export default function AnimePage() {
         if (!token || libraryLoading) return;
         setLibraryLoading(true);
         try {
-            const res = await fetch(`/api/anime-library/${animeId}`, {
-                method: 'DELETE',
+            await apiDelete(`/anime-library/${animeId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
-                },
+                }
             });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to remove anime from library');
-            }
             setLibraryStatus(null);
             setShowStatusDropdown(false);
             setLibraryError(null);
@@ -422,10 +396,7 @@ export default function AnimePage() {
         const fetchReviewsAndReactions = async () => {
             try {
                 // Fetch reviews
-                const reviewsResponse = await fetch(`/api/anime/${animeId}/reviews`);
-                if (!reviewsResponse.ok) throw new Error(`Status ${reviewsResponse.status}`);
-                
-                const allReviews = await reviewsResponse.json();
+                const allReviews = await apiCall(`/anime/${animeId}/reviews`);
                 const arr = Array.isArray(allReviews) ? allReviews : [];
                 setReviews(arr);
 
@@ -439,35 +410,33 @@ export default function AnimePage() {
                     // Fetch user reactions for all reviews if user is logged in
                     if (token) {
                         const reviewIds = arr.map(r => r.review_id);
-                        const reactionsResponse = await fetch('/api/reviews/user-reactions', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ reviewIds })
-                        });
-
-                        if (reactionsResponse.ok) {
-                            const reactionsData = await reactionsResponse.json();
+                        try {
+                            const reactionsData = await apiPost('/reviews/user-reactions', {
+                                reviewIds
+                            }, {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
                             setUserReactions(reactionsData.data.userReactions || {});
+                        } catch (error) {
+                            console.error('Error fetching user reactions:', error);
                         }
                     }
                 } else if (token && arr.length > 0) {
                     // User is logged in but no reviews yet, still fetch reactions
                     const reviewIds = arr.map(r => r.review_id);
-                    const reactionsResponse = await fetch('/api/reviews/user-reactions', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ reviewIds })
-                    });
-
-                    if (reactionsResponse.ok) {
-                        const reactionsData = await reactionsResponse.json();
+                    try {
+                        const reactionsData = await apiPost('/reviews/user-reactions', {
+                            reviewIds
+                        }, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
                         setUserReactions(reactionsData.data.userReactions || {});
+                    } catch (error) {
+                        console.error('Error fetching user reactions:', error);
                     }
                 }
             } catch (err) {
@@ -493,36 +462,30 @@ export default function AnimePage() {
         const fetchEpisodes = async () => {
             try {
                 // Fetch episodes
-                const r = await fetch(`/api/episodes/anime/${animeId}`);
-                if (!r.ok) throw new Error(`Status ${r.status}`);
-                
-                const episodesData = await r.json();
+                const episodesData = await apiCall(`/episodes/anime/${animeId}`);
                 const arr = Array.isArray(episodesData) ? episodesData : [];
                 setEpisodesList(arr);
 
                 // Fetch episode progress for authenticated users
                 if (user && token && arr.length > 0) {
                     try {
-                        const progressResponse = await fetch(`/api/watch/history?animeId=${animeId}`, {
+                        const progressData = await apiCall(`/watch/history?animeId=${animeId}`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             }
                         });
                         
-                        if (progressResponse.ok) {
-                            const progressData = await progressResponse.json();
-                            const progressMap = {};
-                            
-                            progressData.forEach(item => {
-                                progressMap[item.episode_id] = {
-                                    timestamp_position: item.timestamp_position,
-                                    watched_percentage: item.watched_percentage,
-                                    completed: item.completed
-                                };
-                            });
-                            
-                            setEpisodeProgress(progressMap);
-                        }
+                        const progressMap = {};
+                        
+                        progressData.forEach(item => {
+                            progressMap[item.episode_id] = {
+                                timestamp_position: item.timestamp_position,
+                                watched_percentage: item.watched_percentage,
+                                completed: item.completed
+                            };
+                        });
+                        
+                        setEpisodeProgress(progressMap);
                     } catch (progressErr) {
                         console.error('Error fetching episode progress:', progressErr);
                     }
@@ -568,45 +531,41 @@ export default function AnimePage() {
         setReviewLoading(true);
 
         try {
-            const res = await fetch(`/api/anime/${animeId}/review`, {
-                method: 'POST', headers: {
-                    'Content-Type': 'application/json', Authorization: `Bearer ${token}`,
-                }, body: JSON.stringify({rating, content: content.trim()}),
+            const saved = await apiPost(`/anime/${animeId}/review`, {
+                rating, 
+                content: content.trim()
+            }, {
+                headers: {
+                    'Content-Type': 'application/json', 
+                    Authorization: `Bearer ${token}`,
+                }
             });
-            if (!res.ok) {
-                const payload = await res.json();
-                throw new Error(payload.message || 'Failed to save review');
-            }
-            const saved = await res.json();
             setUserReview(saved);
 
             // Re‐fetch rating & rank
-            const ratingRes = await fetch(`/api/anime/${animeId}/rating`);
-            const ratingData = await ratingRes.json();
+            const ratingData = await apiCall(`/anime/${animeId}/rating`);
             setAverageRating(ratingData.averageRating);
             setRank(ratingData.rank);
 
             // Re‐fetch all reviews
-            const allRes = await fetch(`/api/anime/${animeId}/reviews`);
-            const allData = await allRes.json();
+            const allData = await apiCall(`/anime/${animeId}/reviews`);
             const arr = Array.isArray(allData) ? allData : [];
             setReviews(arr);
 
             // Re-fetch user reactions for the updated reviews
             if (token && arr.length > 0) {
                 const reviewIds = arr.map(r => r.review_id);
-                const reactionsResponse = await fetch('/api/reviews/user-reactions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reviewIds })
-                });
-
-                if (reactionsResponse.ok) {
-                    const reactionsData = await reactionsResponse.json();
+                try {
+                    const reactionsData = await apiPost('/reviews/user-reactions', {
+                        reviewIds
+                    }, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                     setUserReactions(reactionsData.data.userReactions || {});
+                } catch (error) {
+                    console.error('Error fetching user reactions:', error);
                 }
             }
         } catch (err) {
@@ -628,48 +587,40 @@ export default function AnimePage() {
         setReviewLoading(true);
 
         try {
-            const res = await fetch(`/api/anime/${animeId}/review`, {
-                method: 'DELETE',
+            await apiDelete(`/anime/${animeId}/review`, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
-                },
+                }
             });
-            if (!res.ok) {
-                const payload = await res.json();
-                throw new Error(payload.message || 'Failed to delete review');
-            }
 
             setUserReview(null); // Clear user's review
             setReviewForm({ rating: 0, content: '' }); // Reset form
 
             // Re-fetch rating & rank
-            const ratingRes = await fetch(`/api/anime/${animeId}/rating`);
-            const ratingData = await ratingRes.json();
+            const ratingData = await apiCall(`/anime/${animeId}/rating`);
             setAverageRating(ratingData.averageRating);
             setRank(ratingData.rank);
 
             // Re-fetch all reviews
-            const allRes = await fetch(`/api/anime/${animeId}/reviews`);
-            const allData = await allRes.json();
+            const allData = await apiCall(`/anime/${animeId}/reviews`);
             const arr = Array.isArray(allData) ? allData : [];
             setReviews(arr);
 
             // Re-fetch user reactions for the updated reviews
             if (token && arr.length > 0) {
                 const reviewIds = arr.map(r => r.review_id);
-                const reactionsResponse = await fetch('/api/reviews/user-reactions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reviewIds })
-                });
-
-                if (reactionsResponse.ok) {
-                    const reactionsData = await reactionsResponse.json();
+                try {
+                    const reactionsData = await apiPost('/reviews/user-reactions', {
+                        reviewIds
+                    }, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                     setUserReactions(reactionsData.data.userReactions || {});
+                } catch (error) {
+                    console.error('Error fetching user reactions:', error);
                 }
             } else {
                 setUserReactions({});

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'react-feather';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiCall } from '../utils/api';
 import '../styles/AdvancedSearchForm.css';
 
 const AdvancedSearchForm = ({ onSearchParamsChange, initialParams = {}, isInNavbar = false }) => {
@@ -39,18 +40,15 @@ const AdvancedSearchForm = ({ onSearchParamsChange, initialParams = {}, isInNavb
 
     const fetchGenres = async () => {
         try {
-            const response = await fetch('/api/genre');
-            if (response.ok) {
-                const data = await response.json();
-                const normalizedGenres = Array.isArray(data) 
-                    ? data.map(g => ({
-                        id: g.id || g.genre_id,
-                        genre_id: g.genre_id || g.id,
-                        name: g.name || g.genre_name || 'Unnamed Genre'
-                    }))
-                    : [];
-                setGenres(normalizedGenres);
-            }
+            const data = await apiCall('/genre');
+            const normalizedGenres = Array.isArray(data) 
+                ? data.map(g => ({
+                    id: g.id || g.genre_id,
+                    genre_id: g.genre_id || g.id,
+                    name: g.name || g.genre_name || 'Unnamed Genre'
+                }))
+                : [];
+            setGenres(normalizedGenres);
         } catch (err) {
             console.error('Error fetching genres:', err);
         }

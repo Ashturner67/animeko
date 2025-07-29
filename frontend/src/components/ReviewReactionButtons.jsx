@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineLike, AiOutlineDislike, AiFillLike, AiFillDislike } from 'react-icons/ai';
 import { useAuth } from '../contexts/AuthContext';
+import { apiPost, apiDelete } from '../utils/api';
 import './ReviewReactionButtons.css';
 
 const ReviewReactionButtons = ({ reviewId, initialLikes = 0, initialDislikes = 0, userReaction = null, onReactionChange = null }) => {
@@ -28,12 +29,11 @@ const ReviewReactionButtons = ({ reviewId, initialLikes = 0, initialDislikes = 0
         setIsLoading(true);
 
         try {
-            let response;
+            let data;
             
             // If clicking the same reaction type, remove it
             if (currentUserReaction === reactionType) {
-                response = await fetch(`/api/reviews/${reviewId}/react`, {
-                    method: 'DELETE',
+                data = await apiDelete(`/reviews/${reviewId}/react`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -41,22 +41,15 @@ const ReviewReactionButtons = ({ reviewId, initialLikes = 0, initialDislikes = 0
                 });
             } else {
                 // Add or update reaction
-                response = await fetch(`/api/reviews/${reviewId}/react`, {
-                    method: 'POST',
+                data = await apiPost(`/reviews/${reviewId}/react`, {
+                    reactionType
+                }, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reactionType })
+                    }
                 });
             }
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to update reaction');
-            }
-
-            const data = await response.json();
             
             // Update local state
             setLikeCount(data.data.likeCount);

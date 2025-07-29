@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall, apiDelete } from '../utils/api';
 import '../styles/ContinueWatching.css';
 
 const ContinueWatching = ({ limit = 10 }) => {
@@ -23,17 +24,12 @@ const ContinueWatching = ({ limit = 10 }) => {
         setError(null);
 
         try {
-            const response = await fetch('/api/watch/continue-watching', {
+            const data = await apiCall('/watch/continue-watching', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch continue watching');
-            }
-
-            const data = await response.json();
             setContinueWatching(data.slice(0, limit));
         } catch (err) {
             console.error('Error fetching continue watching:', err);
@@ -45,16 +41,13 @@ const ContinueWatching = ({ limit = 10 }) => {
 
     const removeFromContinueWatching = async (episodeId) => {
         try {
-            const response = await fetch(`/api/watch/continue-watching/${episodeId}`, {
-                method: 'DELETE',
+            await apiDelete(`/watch/continue-watching/${episodeId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
 
-            if (response.ok) {
-                setContinueWatching(prev => prev.filter(item => item.episode_id !== episodeId));
-            }
+            setContinueWatching(prev => prev.filter(item => item.episode_id !== episodeId));
         } catch (err) {
             console.error('Error removing from continue watching:', err);
         }

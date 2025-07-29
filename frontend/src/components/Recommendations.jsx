@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { apiCall, apiPost, apiDelete, apiPut } from '../utils/api';
 import defaultAvatar from '../images/default_avatar.svg';
 import placeholderImg from '../images/image_not_available.jpg';
 import '../styles/Recommendations.css';
@@ -23,21 +24,13 @@ export default function Recommendations() {
                 setLoading(true);
                 setError('');
 
-                const [sentRes, receivedRes] = await Promise.all([
-                    fetch('/api/recommendations/sent', {
+                const [sentData, receivedData] = await Promise.all([
+                    apiCall('/recommendations/sent', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('/api/recommendations/received', {
+                    apiCall('/recommendations/received', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
-                ]);
-
-                if (!sentRes.ok) throw new Error('Failed to load sent recommendations');
-                if (!receivedRes.ok) throw new Error('Failed to load received recommendations');
-
-                const [sentData, receivedData] = await Promise.all([
-                    sentRes.json(),
-                    receivedRes.json()
                 ]);
 
                 setSentRecommendations(Array.isArray(sentData) ? sentData : []);
@@ -56,18 +49,12 @@ export default function Recommendations() {
     // Dismiss a recommendation
     const dismissRecommendation = async (recommendationId) => {
         try {
-            const response = await fetch(`/api/recommendations/${recommendationId}/dismiss`, {
-                method: 'PUT',
+            await apiPut(`/recommendations/${recommendationId}/dismiss`, {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to dismiss recommendation');
-            }
 
             // Remove from received recommendations
             setReceivedRecommendations(prev => 
@@ -86,35 +73,24 @@ export default function Recommendations() {
     // Recommend again (update existing recommendation)
     const recommendAgain = async (recommendation) => {
         try {
-            const response = await fetch('/api/recommendations', {
-                method: 'POST',
+            const data = await apiPost('/recommendations', {
+                receiverId: recommendation.receiver_id,
+                animeId: recommendation.anime_id,
+                message: recommendation.message
+            }, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    receiverId: recommendation.receiver_id,
-                    animeId: recommendation.anime_id,
-                    message: recommendation.message
-                })
+                    'Authorization': `Bearer ${token}`
+                }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to recommend again');
-            }
 
             setMessage('Recommendation sent again successfully');
             setTimeout(() => setMessage(''), 3000);
 
             // Refresh sent recommendations to show updated timestamp
-            const sentRes = await fetch('/api/recommendations/sent', {
+            const sentData = await apiCall('/recommendations/sent', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (sentRes.ok) {
-                const sentData = await sentRes.json();
-                setSentRecommendations(Array.isArray(sentData) ? sentData : []);
-            }
+            setSentRecommendations(Array.isArray(sentData) ? sentData : []);
         } catch (error) {
             console.error('Error recommending again:', error);
             setError(error.message || 'Failed to recommend again');

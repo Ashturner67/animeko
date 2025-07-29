@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../../utils/api';
 import '../../styles/AnimeImageInput.css';
 
 const VATab = ({searchQuery}) => {
@@ -24,19 +25,13 @@ const VATab = ({searchQuery}) => {
     const fetchVoiceActors = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/voice-actors', {
+            const data = await apiCall('/voice-actors', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
             
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to fetch voice actors');
-            }
-            
-            const data = await response.json();
             console.log('Fetched voice actors:', data); // Debug log
             
             // Handle both array and paginated response formats
@@ -196,18 +191,12 @@ const VATab = ({searchQuery}) => {
             }
 
             setLoading(true);
-            const response = await fetch(`/api/voice-actors/${vaId}`, {
-                method: 'DELETE',
+            await apiDelete(`/voice-actors/${vaId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to delete voice actor');
-            }
 
             await fetchVoiceActors();
             setError('');

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../../utils/api';
 import { X } from 'react-feather';
 import '../../styles/AdminDropdown.css';
 import '../../styles/AnimeImageInput.css';
@@ -55,11 +56,8 @@ const CharactersTab = ({ searchQuery }) => {
     
     const fetchAnimeList = async () => {
         try {
-            const response = await fetch('/api/animes');
-            if (response.ok) {
-                const data = await response.json();
-                setAnimeList(Array.isArray(data) ? data : []);
-            }
+            const data = await apiCall('/animes');
+            setAnimeList(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Error fetching anime list:', err);
         }
@@ -97,19 +95,13 @@ const CharactersTab = ({ searchQuery }) => {
     const fetchCharacters = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/characters', {
+            const data = await apiCall('/characters', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
             
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to fetch characters');
-            }
-            
-            const data = await response.json();
             setCharacters(Array.isArray(data) ? data : []);
             setError('');
         } catch (err) {
@@ -123,18 +115,13 @@ const CharactersTab = ({ searchQuery }) => {
 
     const fetchVoiceActors = async () => {
         try {
-            const response = await fetch('/api/voice-actors', {
+            const data = await apiCall('/voice-actors', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
             
-            if (!response.ok) {
-                throw new Error('Failed to fetch voice actors');
-            }
-            
-            const data = await response.json();
             setVoiceActors(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Error fetching voice actors:', err);
@@ -273,18 +260,12 @@ const CharactersTab = ({ searchQuery }) => {
             setEditingId(charId);
             
             // Fetch detailed character data with anime associations
-            const response = await fetch(`/api/characters/${charId}/details`, {
+            const detailedCharacter = await apiCall(`/characters/${charId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            
-            if (!response.ok) {
-                throw new Error('Failed to fetch character details');
-            }
-            
-            const detailedCharacter = await response.json();
             
             // Initialize selected animes with the fetched data
             initializeSelectedAnimes(detailedCharacter);
@@ -312,18 +293,12 @@ const CharactersTab = ({ searchQuery }) => {
             }
 
             setLoading(true);
-            const response = await fetch(`/api/characters/${charId}`, {
-                method: 'DELETE',
+            await apiDelete(`/characters/${charId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to delete character');
-            }
 
             await fetchCharacters();
             setError('');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { fetchAnimeLibraryStatus, toggleFavorite, addToAnimeLibrary, removeFromAnimeLibrary } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/AnimeCard.css';
 
@@ -18,15 +19,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
     useEffect(() => {
         if (!user) return;
 
-        fetch(`/api/anime-library/${anime.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(r => {
-                if (!r.ok && r.status !== 404) {
-                    throw new Error(`Server error: ${r.status}`);
-                }
-                return r.json();
-            })
+        fetchAnimeLibraryStatus(anime.id)
             .then(data => {
                 setLibraryStatus(data.status);
             })
@@ -37,25 +30,14 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
             });
     }, [anime.id, user, token]);
 
-    const toggleFavorite = async (e) => {
+    const handleToggleFavorite = async (e) => {
         e.preventDefault(); // Prevent navigation
         if (!token) return;
         setFavLoading(true);
 
         try {
-            const response = await fetch('/api/favorites', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    entityType: 'anime',
-                    entityId: +anime.id
-                })
-            });
-            const data = await response.json();
-            setIsFavorite(data.favorite);
+            const result = await toggleFavorite('anime', anime.id);
+            setIsFavorite(result.action === 'added');
         } catch (err) {
             console.error('Error toggling favorite:', err);
         } finally {
@@ -70,33 +52,13 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
         setLoading(true);
         try {
             if (action === 'add') {
-                await fetch('/api/anime-library', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        animeId: anime.id,
-                        status: 'Planned to Watch'
-                    })
-                });
+                await addToAnimeLibrary(anime.id, 'Planned to Watch');
                 setLibraryStatus('Planned to Watch');
             } else if (action === 'update') {
-                await fetch(`/api/anime-library/${anime.id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
+                await updateAnimeLibraryStatus(anime.id, { status: newStatus });
                 setLibraryStatus(newStatus);
             } else if (action === 'remove') {
-                await fetch(`/api/anime-library/${anime.id}`, {
-                    method: 'DELETE',
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await removeFromAnimeLibrary(anime.id);
                 setLibraryStatus(null);
             }
         } catch (err) {
@@ -132,7 +94,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
                 <div className="anime-card-controls" onClick={e => e.preventDefault()}>
                     <button 
                         className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-                        onClick={toggleFavorite}
+                        onClick={handleToggleFavorite}
                         title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                         disabled={favLoading}
                     >

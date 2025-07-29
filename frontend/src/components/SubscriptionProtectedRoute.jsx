@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAlert } from '../contexts/AlertContext';
+import { apiCall } from '../utils/api';
 
 /**
  * A protected route component that ensures a user has an active subscription.
@@ -42,26 +43,22 @@ const SubscriptionProtectedRoute = ({ children }) => {
       try {
         // This is a lightweight endpoint that is protected by both `authenticate`
         // and `requireSubscription` middlewares. Its only purpose is to check access.
-        const response = await fetch('/api/premium-content-check', {
+        await apiCall('/premium-content-check', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
-        if (response.ok) {
-          // User has access
-          setIsVerified(true);
-        } else if (response.status === 403) {
+        // User has access
+        setIsVerified(true);
+      } catch (error) {
+        if (error.message && error.message.includes('403')) {
           // User's subscription is invalid/expired
           setAlert('Your subscription has expired. Please renew to access this content.', 'warning');
           navigate('/subscription');
         } else {
           // Handle other errors (e.g., 401 Unauthorized, 500 Server Error)
-          const errorData = await response.json();
-          setAlert(errorData.message || 'An error occurred while verifying your access.', 'error');
+          setAlert(error.message || 'An error occurred while verifying your access.', 'error');
           navigate('/');
         }
-      } catch (error) {
-        setAlert('Could not connect to the server to verify your subscription.', 'error');
-        navigate('/');
       }
     };
 

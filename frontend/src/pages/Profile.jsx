@@ -5,7 +5,7 @@ import {useAuth} from '../contexts/AuthContext';
 import VisibilityToggle from '../components/VisibilityToggle';
 import VisibilityRestriction from '../components/VisibilityRestriction';
 import FriendshipButton from '../components/FriendshipButton';
-import { fetchUserProfile, fetchUserFavorites, VisibilityError, NotFoundError } from '../utils/api';
+import { fetchUserProfile, fetchUserFavorites, VisibilityError, NotFoundError, apiCall } from '../utils/api';
 import placeholderImg from '../images/image_not_available.jpg';
 import defaultAvatar from '../images/default_avatar.svg';
 import '../styles/Profile.css';
@@ -65,15 +65,14 @@ export default function Profile() {
 
                 if (isOwnProfile) {
                     // For own profile, fetch fresh data to get latest visibility settings
-                    const profileRes = await fetch('/api/auth/profile', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-
-                    if (profileRes.ok) {
-                        const profileData = await profileRes.json();
+                    try {
+                        const profileData = await apiCall('/auth/profile', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
                         console.log('Fetched profile data:', profileData);
                         setProfileUser(profileData);
-                    } else {
+                    } catch (error) {
                         console.log('Profile fetch failed, using currentUser:', currentUser);
                         setProfileUser(currentUser);
                     }
@@ -120,16 +119,11 @@ export default function Profile() {
             try {
                 if (isOwnProfile && token) {
                     // For own profile, use authenticated endpoint
-                    const response = await fetch('/api/favorites', {
+                    const data = await apiCall('/favorites', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        setFavorites(Array.isArray(data) ? data : []);
-                    } else {
-                        throw new Error('Failed to fetch favorites');
-                    }
+                    setFavorites(Array.isArray(data) ? data : []);
                 } else {
                     // For other users' profiles, use the new API endpoint with visibility checks
                     const favoritesData = await fetchUserFavorites(viewingUserId);

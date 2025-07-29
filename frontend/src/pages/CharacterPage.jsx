@@ -2,6 +2,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../contexts/AuthContext';
+import { apiCall, apiPost } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/CharacterPage.css';
 
@@ -18,11 +19,7 @@ export default function CharacterPage() {
 
     // fetch character details
     useEffect(() => {
-        fetch(`/api/characters/${charId}`)
-            .then(res => {
-                if (!res.ok) throw new Error(res.status);
-                return res.json();
-            })
+        apiCall(`/characters/${charId}`)
             .then(data => {
                 setChar(data);
                 setLoading(false);
@@ -37,10 +34,9 @@ export default function CharacterPage() {
     // fetch favorites
     useEffect(() => {
         if (!token) return;
-        fetch('/api/favorites', {
+        apiCall('/favorites', {
             headers: {Authorization: `Bearer ${token}`}
         })
-            .then(r => r.json())
             .then(favs => {
                 setIsFavorite(favs.some(f => f.entityType === 'character' && +f.entityId === +charId));
             })
@@ -51,12 +47,14 @@ export default function CharacterPage() {
     const toggleFavorite = () => {
         if (!token) return;
         setFavLoading(true);
-        fetch('/api/favorites', {
-            method: 'POST', headers: {
-                'Content-Type': 'application/json', Authorization: `Bearer ${token}`
-            }, body: JSON.stringify({entityType: 'character', entityId: +charId})
+        apiPost('/favorites', {
+            entityType: 'character', 
+            entityId: +charId
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         })
-            .then(r => r.json())
             .then(data => setIsFavorite(data.favorite))
             .catch(console.error)
             .finally(() => setFavLoading(false));

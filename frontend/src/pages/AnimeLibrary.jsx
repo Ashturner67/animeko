@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { fetchUserLibrary, VisibilityError, NotFoundError } from '../utils/api';
+import { fetchUserLibrary, VisibilityError, NotFoundError, apiPut, apiDelete } from '../utils/api';
 import VisibilityRestriction from '../components/VisibilityRestriction';
 import '../styles/AnimeLibrary.css';
 import placeholder from '../images/image_not_available.jpg';
@@ -70,19 +70,14 @@ function AnimeLibrary() {
     const handleUpdateStatus = async (animeId, newStatus) => {
         if (!token || !isOwnLibrary) return;
         try {
-            const response = await fetch(`/api/anime-library/${animeId}`, {
-                method: 'PUT',
+            await apiPut(`/anime-library/${animeId}`, {
+                status: newStatus
+            }, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ status: newStatus }),
+                }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to update status');
-            }
 
             // Update local state
             setLibrary((prevLibrary) =>
@@ -102,15 +97,9 @@ function AnimeLibrary() {
             return;
         }
         try {
-            const response = await fetch(`/api/anime-library/${animeId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
+            await apiDelete(`/anime-library/${animeId}`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to remove anime');
-            }
 
             // Update local state
             setLibrary((prevLibrary) =>

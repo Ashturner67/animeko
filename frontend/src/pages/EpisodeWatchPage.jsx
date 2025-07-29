@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiCall, apiPost } from '../utils/api';
 import YouTubePlayer from '../components/YouTubePlayer';
 import '../styles/EpisodeWatchPage.css';
 
@@ -22,15 +23,11 @@ function EpisodeWatchPage() {
             
             try {
                 // Fetch anime details
-                const animeResponse = await fetch(`/api/anime/${animeId}`);
-                if (!animeResponse.ok) throw new Error('Failed to fetch anime');
-                const animeData = await animeResponse.json();
+                const animeData = await apiCall(`/anime/${animeId}`);
                 setAnime(animeData);
 
                 // Fetch all episodes for this anime
-                const episodesResponse = await fetch(`/api/episodes/anime/${animeId}`);
-                if (!episodesResponse.ok) throw new Error('Failed to fetch episodes');
-                const episodesData = await episodesResponse.json();
+                const episodesData = await apiCall(`/episodes/anime/${animeId}`);
                 setEpisodes(episodesData);
 
                 // Fetch specific episode with authentication if user is logged in
@@ -39,35 +36,27 @@ function EpisodeWatchPage() {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
                 
-                const episodeResponse = await fetch(`/api/episodes/anime/${animeId}/episode/${episodeNumber}`, {
-                    headers
-                });
-                if (!episodeResponse.ok) {
-                    if (episodeResponse.status === 403) {
-                        const errorData = await episodeResponse.json();
-                        if (errorData.premiumRequired) {
-                            if (errorData.requiresLogin) {
-                                throw new Error('This episode requires a premium subscription. Please log in to continue.');
-                            } else if (errorData.requiresSubscription) {
-                                throw new Error('This episode requires a premium subscription. Please upgrade your account.');
-                            } else {
-                                throw new Error('This episode requires a premium subscription');
-                            }
-                        }
+                try {
+                    const currentEpisode = await apiCall(`/episodes/anime/${animeId}/episode/${episodeNumber}`, {
+                        headers
+                    });
+                    
+                    if (!currentEpisode.episode_url_yt_id) {
+                        throw new Error('Episode video not available');
+                    }
+
+                    setEpisode(currentEpisode);
+
+                    // Fetch user's progress for this episode if authenticated
+                    if (user && token) {
+                        await fetchEpisodeProgress(currentEpisode.episode_id);
+                    }
+                } catch (episodeError) {
+                    // Handle premium content errors
+                    if (episodeError.message?.includes('premium') || episodeError.message?.includes('subscription')) {
+                        throw episodeError;
                     }
                     throw new Error('Failed to fetch episode');
-                }
-                const currentEpisode = await episodeResponse.json();
-                
-                if (!currentEpisode.episode_url_yt_id) {
-                    throw new Error('Episode video not available');
-                }
-
-                setEpisode(currentEpisode);
-
-                // Fetch user's progress for this episode if authenticated
-                if (user && token) {
-                    await fetchEpisodeProgress(currentEpisode.episode_id);
                 }
             } catch (err) {
                 setError(err.message);
@@ -83,17 +72,14 @@ function EpisodeWatchPage() {
         if (!user || !token) return;
         
         try {
-            const response = await fetch(`/api/watch/progress/${episodeId}`, {
+            const progress = await apiCall(`/watch/progress/${episodeId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
-
-            if (response.ok) {
-                const progress = await response.json();
-                if (progress.timestamp_position > 0) {
-                    setInitialPosition(progress.timestamp_position);
-                }
+            
+            if (progress && progress.timestamp_position > 0) {
+                setInitialPosition(progress.timestamp_position);
             }
         } catch (err) {
             console.error('Error fetching episode progress:', err);

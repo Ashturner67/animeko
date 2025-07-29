@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { apiCall, apiPost, apiPut, apiDelete } from '../../utils/api';
 import { X } from 'react-feather';
 
 const EpisodesTab = ({ searchQuery }) => {
@@ -44,18 +45,13 @@ const EpisodesTab = ({ searchQuery }) => {
     const fetchEpisodes = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/episodes/admin', {
+            const episodes = await apiCall('/episodes/admin', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch episodes');
-            }
-
-            const episodes = await response.json();
             setEpisodeList(episodes);
         } catch (err) {
             console.error('Error fetching episodes:', err);
@@ -67,18 +63,13 @@ const EpisodesTab = ({ searchQuery }) => {
 
     const fetchAnimes = async () => {
         try {
-            const response = await fetch('/api/animes/admin', {
+            const animesData = await apiCall('/animes/admin', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch animes');
-            }
-
-            const animesData = await response.json();
             setAnimes(animesData);
         } catch (err) {
             console.error('Error fetching animes:', err);
@@ -210,18 +201,12 @@ const EpisodesTab = ({ searchQuery }) => {
             }
 
             // Fetch detailed episode data
-            const response = await fetch(`/api/episodes/${episodeId}/details`, {
+            const detailedEpisode = await apiCall(`/episodes/${episodeId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch episode details');
-            }
-
-            const detailedEpisode = await response.json();
 
             // Update form data with detailed information
             setFormData({
@@ -256,18 +241,12 @@ const EpisodesTab = ({ searchQuery }) => {
                 throw new Error('Invalid episode ID format');
             }
 
-            const response = await fetch(`/api/episodes/${episodeId}`, {
-                method: 'DELETE',
+            await apiDelete(`/episodes/${episodeId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to delete episode');
-            }
 
             await fetchEpisodes();
             setError('');

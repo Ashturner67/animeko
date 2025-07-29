@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiCall, apiPost } from '../utils/api';
 import '../styles/SubscriptionPage.css';
 
 const SubscriptionPage = () => {
@@ -16,16 +17,13 @@ const SubscriptionPage = () => {
       if (!token) return;
       
       try {
-        const response = await fetch('/api/subscriptions/current', {
+        const data = await apiCall('/subscriptions/current', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
         
-        if (response.ok) {
-          const data = await response.json();
-          setSubscriptionDetails(data);
-        }
+        setSubscriptionDetails(data);
       } catch (error) {
         console.error('Error fetching subscription details:', error);
       } finally {
@@ -83,47 +81,35 @@ const SubscriptionPage = () => {
           console.log('Sending request to create transaction:', requestBody);
           console.log('Using token:', token ? 'Token present' : 'No token');
           
-          const apiResponse = await fetch('/api/subscriptions/create-transaction', {
-            method: 'POST',
+          const data = await apiPost('/subscriptions/create-transaction', requestBody, {
             headers: {
-              'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(requestBody),
+            }
           });
 
-          if (!apiResponse.ok) {
-            const errorData = await apiResponse.json();
-            console.error('Failed to create transaction record:', errorData.message);
-            console.error('Response status:', apiResponse.status);
-            console.error('Response details:', errorData);
-            
-            // Handle specific case where user already has subscription
-            if (apiResponse.status === 400 && errorData.subscriptionDetails) {
-              const validUntilText = errorData.subscriptionDetails.subscriptionType === 'Lifetime' 
-                ? 'Lifetime Access' 
-                : (errorData.subscriptionDetails.endDate ? new Date(errorData.subscriptionDetails.endDate).toLocaleDateString() : 'N/A');
-              alert(`You already have an active subscription! 
-Subscription Type: ${errorData.subscriptionDetails.subscriptionType}
-Valid Until: ${validUntilText}`);
-              // Refresh subscription details
-              window.location.reload();
-            } else {
-              alert(`Failed to initialize payment: ${errorData.message}`);
+          // Process the response data
+          if (data && data.transactionId) {
+            const transactionId = data.transactionId;
+
+            try {
+              const redirectURL = encodeURIComponent(`${window.location.origin}/payment-confirmation?transactionId=${transactionId}`);
+              const gatewayURL = `https://tpg-six.vercel.app/gateway?transactionid=${transactionId}&redirectURL=${redirectURL}`;
+              window.location.href = gatewayURL; // Redirect to the payment gateway
+            } catch (error) {
+              console.error('Error creating transaction record:', error);
+              alert('An error occurred while initializing payment. Please try again.');
+              return;
             }
-            return; // Stop the process if we can't record the transaction
+          } else {
+            console.error('Failed to create transaction:', data?.message || 'Unknown error');
+            alert('Failed to initiate payment. Please try again.');
           }
         } catch (error) {
-          console.error('Error creating transaction record:', error);
-          alert('An error occurred while initializing payment. Please try again.');
-          return;
+          console.error('Error creating transaction:', error);
+          alert('An error occurred while initiating payment. Please try again.');
         }
-
-        const redirectURL = encodeURIComponent(`${window.location.origin}/payment-confirmation?transactionId=${transactionId}`);
-        const gatewayURL = `https://tpg-six.vercel.app/gateway?transactionid=${transactionId}&redirectURL=${redirectURL}`;
-        window.location.href = gatewayURL; // Redirect to the payment gateway
       } else {
-        console.error('Failed to create transaction:', data.message);
+        console.error('Payment gateway response invalid:', data);
         alert('Failed to initiate payment. Please try again.');
       }
     } catch (error) {
