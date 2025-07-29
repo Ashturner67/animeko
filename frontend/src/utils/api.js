@@ -1,6 +1,7 @@
 // API utility functions for handling visibility and authentication
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Use environment variable or relative URL for production
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {
