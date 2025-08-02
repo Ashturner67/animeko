@@ -50,13 +50,10 @@ const io = initializeSocket(server);
 // Enable CORS for requests from your frontend
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true,
 };
 app.use(cors(corsOptions));
-
-// Register search route
-app.use('/api/search', searchRoutes);
 
 // Handle preflight requests
 //app.options('*', cors(corsOptions));
@@ -69,6 +66,9 @@ app.use(attachDatabaseHelpers);
 
 // Attach visibility helpers to all requests
 app.use(attachVisibilityHelpers);
+
+// Register search route after middleware
+app.use('/api/search', searchRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api', animeRoutes);

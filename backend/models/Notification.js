@@ -61,12 +61,11 @@ class Notification {
             UPDATE notifications 
             SET is_read = true 
             WHERE recipient_id = $1 AND is_read = false
-            RETURNING COUNT(*) as updated_count
         `;
         
         try {
             const result = await pool.query(query, [userId]);
-            return result.rowCount;
+            return result.rowCount; // This returns the number of rows affected
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
             throw error;
@@ -109,6 +108,39 @@ class Notification {
             return result.rows[0];
         } catch (error) {
             console.error('Error creating notification:', error);
+            throw error;
+        }
+    }
+
+    static async deleteByTypeAndSender(recipientId, senderId, type) {
+        const query = `
+            DELETE FROM notifications 
+            WHERE recipient_id = $1 AND sender_id = $2 AND type = $3
+            RETURNING *
+        `;
+        
+        try {
+            const result = await pool.query(query, [recipientId, senderId, type]);
+            return result.rows;
+        } catch (error) {
+            console.error('Error deleting notifications by type and sender:', error);
+            throw error;
+        }
+    }
+
+    static async findSimilar(recipientId, senderId, type, relatedId) {
+        const query = `
+            SELECT * FROM notifications 
+            WHERE recipient_id = $1 AND sender_id = $2 AND type = $3 AND related_id = $4
+            ORDER BY created_at DESC
+            LIMIT 1
+        `;
+        
+        try {
+            const result = await pool.query(query, [recipientId, senderId, type, relatedId]);
+            return result.rows[0] || null;
+        } catch (error) {
+            console.error('Error finding similar notification:', error);
             throw error;
         }
     }

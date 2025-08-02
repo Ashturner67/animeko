@@ -1,5 +1,7 @@
 import express from 'express';
 import Recommendation from '../models/Recommendation.js';
+import NotificationService from '../services/NotificationService.js';
+import Anime from '../models/Anime.js';
 import authenticate from '../middlewares/authenticate.js';
 
 const router = express.Router();
@@ -42,6 +44,24 @@ router.post('/', authenticate, async (req, res, next) => {
             animeId, 
             message
         );
+
+        // Get anime title for the notification
+        const anime = await Anime.getById(animeId);
+        const animeTitle = anime ? anime.title : 'Unknown Anime';
+
+        // Small delay to ensure database trigger completes before emitting events
+        setTimeout(async () => {
+            try {
+                await NotificationService.handleAnimeRecommendation(
+                    senderId,
+                    receiverId,
+                    animeId,
+                    animeTitle
+                );
+            } catch (error) {
+                console.error('Error handling anime recommendation notification:', error);
+            }
+        }, 100);
 
         res.status(201).json({
             message: 'Recommendation sent successfully',

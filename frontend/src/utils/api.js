@@ -1,6 +1,10 @@
 // API utility functions for handling visibility and authentication
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Use environment variable or fallback to current host
+const API_BASE_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5000/api`;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
+
+export { API_BASE_URL, SOCKET_URL };
 
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {

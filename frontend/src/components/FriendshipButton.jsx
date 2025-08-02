@@ -7,6 +7,7 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
     const [status, setStatus] = useState('none');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [lastFetchedUserId, setLastFetchedUserId] = useState(null);
 
     // Don't show button for own profile or when not authenticated
     if (!user || !token || parseInt(targetUserId) === user.user_id) {
@@ -14,26 +15,32 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
     }
 
     useEffect(() => {
-        fetchFriendshipStatus();
-    }, [targetUserId, token]);
+        const fetchFriendshipStatus = async () => {
+            // Only fetch if we have a different target user or haven't fetched yet
+            if (!targetUserId || targetUserId === lastFetchedUserId) return;
 
-    const fetchFriendshipStatus = async () => {
-        try {
-            const response = await fetch(`/api/friends/status/${targetUserId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            try {
+                const response = await fetch(`/api/friends/status/${targetUserId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                setStatus(data.status);
-                if (onStatusChange) {
-                    onStatusChange(data.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    setStatus(data.status);
+                    setLastFetchedUserId(targetUserId);
+                    if (onStatusChange) {
+                        onStatusChange(data.status);
+                    }
                 }
+            } catch (err) {
+                console.error('Error fetching friendship status:', err);
             }
-        } catch (err) {
-            console.error('Error fetching friendship status:', err);
+        };
+
+        if (targetUserId && token) {
+            fetchFriendshipStatus();
         }
-    };
+    }, [targetUserId, token, onStatusChange, lastFetchedUserId]);
 
     const handleAction = async (action) => {
         setLoading(true);
@@ -92,8 +99,32 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
             }
 
             if (response.ok) {
-                // Refresh friendship status
-                await fetchFriendshipStatus();
+                // Update status locally instead of refetching to avoid button flicker
+                let newStatus;
+                switch (action) {
+                    case 'send_request':
+                        newStatus = 'request_sent';
+                        break;
+                    case 'cancel_request':
+                        newStatus = 'none';
+                        break;
+                    case 'accept_request':
+                        newStatus = 'friend';
+                        break;
+                    case 'reject_request':
+                        newStatus = 'none';
+                        break;
+                    case 'unfriend':
+                        newStatus = 'none';
+                        break;
+                    default:
+                        newStatus = 'none';
+                }
+                
+                setStatus(newStatus);
+                if (onStatusChange) {
+                    onStatusChange(newStatus);
+                }
             } else {
                 const errorData = await response.json();
                 setError(errorData.message || 'Action failed');
@@ -160,6 +191,18 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
                         disabled={loading}
                     >
                         {loading ? '...' : '👥 Unfriend'}
+                    </button>
+                );
+
+            case 'rejected':
+                // Show "Add Friend" button for rejected requests
+                return (
+                    <button 
+                        className={`${baseClass} add-friend`}
+                        onClick={() => handleAction('send_request')}
+                        disabled={loading}
+                    >
+                        {loading ? '...' : '👤+ Add Friend'}
                     </button>
                 );
 

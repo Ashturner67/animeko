@@ -2,6 +2,8 @@ import express from 'express';
 import Friendship from '../models/Friendship.js'; // Import the Friendship model
 import User from '../models/User.js'; // Import the User model
 import Favorite from '../models/Favorite.js'; // Import the Favorite model
+import Notification from '../models/Notification.js'; // Import the Notification model
+import NotificationService from '../services/NotificationService.js'; // Import the Notification service
 import authenticate from '../middlewares/authenticate.js';
 import authorizeAdmin from '../middlewares/authorizeAdmin.js';
 import { parseIntParam } from '../utils/mediaUtils.js';
@@ -17,6 +19,10 @@ router.post('/friends/requests', authenticate, async (req, res) => {
     const requester = req.user.user_id;
     const {addresseeId} = req.body;
     
+    if (!addresseeId) {
+        return res.status(400).json({message: "addresseeId is required"});
+    }
+    
     if (requester === addresseeId) {
         return res.status(400).json({message: "Cannot friend yourself"});
     }
@@ -29,6 +35,16 @@ router.post('/friends/requests', authenticate, async (req, res) => {
         }
 
         const result = await Friendship.sendFriendRequest({ requesterId: requester, addresseeId });
+        
+        // Small delay to ensure database trigger completes before emitting events
+        setTimeout(async () => {
+            try {
+                await NotificationService.handleFriendRequest(requester, addresseeId);
+            } catch (error) {
+                console.error('Error handling friend request notification:', error);
+            }
+        }, 100);
+        
         res.status(201).json(result);
     } catch (err) {
         console.error(err);
@@ -82,6 +98,40 @@ router.post('/friends/requests/:requesterId/:action', authenticate, async (req, 
         if (!result) {
             return res.status(404).json({message: 'Not found or already handled'});
         }
+        
+        // Delete the friend request notification from the addressee's notifications
+        try {
+            const deletedNotifications = await Notification.deleteByTypeAndSender(addressee, requesterId, 'friend_request');
+            
+            // Emit real-time notification deletion to the addressee (person who accepted/rejected)
+            if (deletedNotifications.length > 0) {
+                const { emitNotificationDeletionToUser, emitUnreadCountToUser } = await import('../utils/socket.js');
+                
+                for (const deletedNotification of deletedNotifications) {
+                    emitNotificationDeletionToUser(addressee, deletedNotification.id);
+                }
+                
+                // Emit updated unread count
+                const unreadCount = await Notification.getUnreadCount(addressee);
+                emitUnreadCountToUser(addressee, unreadCount);
+            }
+        } catch (notificationError) {
+            console.error('Error deleting friend request notification:', notificationError);
+            // Don't fail the request if notification deletion fails
+        }
+        
+        // Create and emit notification for friend request acceptance
+        if (action === 'accept') {
+            // Small delay to ensure database trigger completes before emitting events
+            setTimeout(async () => {
+                try {
+                    await NotificationService.handleFriendAccept(requesterId, addressee);
+                } catch (error) {
+                    console.error('Error handling friend accept notification:', error);
+                }
+            }, 100);
+        }
+        
         res.json(result);
     } catch (err) {
         console.error(err);
@@ -265,6 +315,28 @@ router.delete('/friends/requests/:addresseeId', authenticate, async (req, res) =
         if (!canceled) {
             return res.status(404).json({ message: 'Pending friend request not found' });
         }
+        
+        // Delete the corresponding friend request notification
+        try {
+            const deletedNotifications = await Notification.deleteByTypeAndSender(addresseeId, requesterId, 'friend_request');
+            
+            // Emit real-time notification deletion to the recipient
+            if (deletedNotifications.length > 0) {
+                const { emitNotificationDeletionToUser, emitUnreadCountToUser } = await import('../utils/socket.js');
+                
+                for (const deletedNotification of deletedNotifications) {
+                    emitNotificationDeletionToUser(addresseeId, deletedNotification.id);
+                }
+                
+                // Emit updated unread count
+                const unreadCount = await Notification.getUnreadCount(addresseeId);
+                emitUnreadCountToUser(addresseeId, unreadCount);
+            }
+        } catch (notificationError) {
+            console.error('Error deleting friend request notification:', notificationError);
+            // Don't fail the request if notification deletion fails
+        }
+        
         res.json({ message: 'Friend request canceled successfully' });
     } catch (err) {
         console.error('Cancel friend request error:', err);

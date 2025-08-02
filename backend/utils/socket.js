@@ -6,12 +6,14 @@ let io;
 export const initializeSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: 'http://localhost:5173',
+            origin: process.env.CLIENT_URL || 'http://localhost:5173',
             credentials: true,
         },
-        // Simpler, more stable configuration
-        pingTimeout: 60000,
-        pingInterval: 25000
+        // More stable configuration for small-scale usage
+        pingTimeout: 120000, // 2 minutes - more lenient for idle users
+        pingInterval: 60000, // 1 minute ping interval
+        connectTimeout: 45000, // 45 seconds to establish connection
+        transports: ['websocket', 'polling'] // Fallback to polling if websocket fails
     });
 
     // Authentication middleware for socket connections
@@ -33,7 +35,8 @@ export const initializeSocket = (server) => {
     });
 
     io.on('connection', (socket) => {
-        console.log(`User ${socket.userId} connected`);
+        // Reduce verbose logging - only log if needed for debugging
+        // console.log(`User ${socket.userId} connected`);
         
         // Join user to their personal room for targeted notifications
         socket.join(`user_${socket.userId}`);
@@ -67,5 +70,12 @@ export const emitNotificationToUser = (userId, notification) => {
 export const emitUnreadCountToUser = (userId, count) => {
     if (io) {
         io.to(`user_${userId}`).emit('unreadCountUpdate', { count });
+    }
+};
+
+// Helper function to emit notification deletion to a specific user
+export const emitNotificationDeletionToUser = (userId, notificationId) => {
+    if (io) {
+        io.to(`user_${userId}`).emit('notificationDeleted', { notificationId });
     }
 };

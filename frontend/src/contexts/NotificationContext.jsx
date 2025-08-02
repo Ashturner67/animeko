@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEff            newSocket.on('notificationDeleted', (notificationId) => {
+                setNotifications(prev => prev.filter(n => n.id !== notificationId));
+            });om 'react';
 import { useAuth } from './AuthContext';
 import { io } from 'socket.io-client';
+import { API_BASE_URL, SOCKET_URL } from '../utils/api';
 
 const NotificationContext = createContext();
 
@@ -22,17 +25,25 @@ export const NotificationProvider = ({ children }) => {
     // Initialize socket connection only for authenticated non-admin users
     useEffect(() => {
         if (user && token && !isAdmin) {
-            const newSocket = io('http://localhost:5000', {
+            // Close existing socket if it exists
+            if (socket) {
+                socket.close();
+                setSocket(null);
+            }
+            
+            const newSocket = io(SOCKET_URL, {
                 auth: {
                     token: token
                 },
-                // Add configuration to reduce disconnections
+                // Configuration to reduce disconnections for idle users
                 autoConnect: true,
                 reconnection: true,
-                reconnectionDelay: 1000,
-                reconnectionAttempts: 5,
-                timeout: 20000,
-                forceNew: false
+                reconnectionDelay: 2000, // Wait 2 seconds before reconnecting
+                reconnectionDelayMax: 10000, // Max 10 seconds delay
+                reconnectionAttempts: 10, // More reconnection attempts
+                timeout: 45000, // 45 seconds connection timeout
+                forceNew: false,
+                transports: ['websocket', 'polling'] // Use both transport methods
             });
 
             newSocket.on('connect', () => {
@@ -41,11 +52,20 @@ export const NotificationProvider = ({ children }) => {
 
             newSocket.on('newNotification', (notification) => {
                 setNotifications(prev => [notification, ...prev]);
-                setUnreadCount(prev => prev + 1);
+                // Don't manually increment - wait for unreadCountUpdate event
             });
 
             newSocket.on('unreadCountUpdate', ({ count }) => {
                 setUnreadCount(count);
+            });
+
+            newSocket.on('notificationDeleted', ({ notificationId }) => {
+                console.log('🗑️ Received notification deletion event for ID:', notificationId);
+                setNotifications(prev => {
+                    const filtered = prev.filter(notification => notification.id !== notificationId);
+                    console.log('📝 Removed notification from list. Previous length:', prev.length, '→ New length:', filtered.length);
+                    return filtered;
+                });
             });
 
             newSocket.on('disconnect', (reason) => {
@@ -71,12 +91,12 @@ export const NotificationProvider = ({ children }) => {
                 setSocket(null);
             }
         }
-    }, [user?.id, token, isAdmin]); // Only depend on user.id instead of entire user object
+    }, [user?.id, token, isAdmin]); // Remove socket dependency to prevent infinite loops
 
     // Fetch initial notifications and unread count only for authenticated non-admin users
     useEffect(() => {
         if (user && token && !isAdmin) {
-            fetchNotifications();
+            fetchNotifications(1, 50); // Fetch more notifications to see if there are hidden ones
             fetchUnreadCount();
         }
     }, [user?.id, token, isAdmin]); // Only depend on user.id instead of entire user object
@@ -86,7 +106,8 @@ export const NotificationProvider = ({ children }) => {
 
         try {
             setLoading(true);
-            const response = await fetch(`http://localhost:5000/api/notifications?page=${page}&limit=${limit}`, {
+            console.log('📥 Fetching notifications, page:', page, 'limit:', limit);
+            const response = await fetch(`${API_BASE_URL}/notifications?page=${page}&limit=${limit}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -95,14 +116,18 @@ export const NotificationProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('📥 Notifications fetched:', data.notifications.length, 'notifications');
+                console.log('📥 Unread notifications:', data.notifications.filter(n => !n.is_read).length);
                 if (page === 1) {
                     setNotifications(data.notifications);
                 } else {
                     setNotifications(prev => [...prev, ...data.notifications]);
                 }
+            } else {
+                console.error('❌ Failed to fetch notifications, status:', response.status);
             }
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            console.error('❌ Error fetching notifications:', error);
         } finally {
             setLoading(false);
         }
@@ -112,7 +137,8 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await fetch('http://localhost:5000/api/notifications/unread-count', {
+            console.log('📊 Fetching initial unread count...');
+            const response = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -121,10 +147,13 @@ export const NotificationProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('📊 Initial unread count fetched:', data.count);
                 setUnreadCount(data.count);
+            } else {
+                console.error('❌ Failed to fetch unread count, status:', response.status);
             }
         } catch (error) {
-            console.error('Error fetching unread count:', error);
+            console.error('❌ Error fetching unread count:', error);
         }
     };
 
@@ -132,7 +161,7 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/notifications/${notificationId}/read`, {
+            const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -148,6 +177,8 @@ export const NotificationProvider = ({ children }) => {
                             : notification
                     )
                 );
+                // Update unread count by decrementing by 1
+                setUnreadCount(prev => Math.max(0, prev - 1));
             }
         } catch (error) {
             console.error('Error marking notification as read:', error);
@@ -157,8 +188,9 @@ export const NotificationProvider = ({ children }) => {
     const markAllAsRead = async () => {
         if (!token) return;
 
+        console.log('🔄 Attempting to mark all notifications as read...');
         try {
-            const response = await fetch('http://localhost:5000/api/notifications/mark-all-read', {
+            const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -166,14 +198,22 @@ export const NotificationProvider = ({ children }) => {
                 }
             });
 
+            console.log('📡 Mark all as read response status:', response.status);
             if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Mark all as read successful:', data);
                 setNotifications(prev =>
                     prev.map(notification => ({ ...notification, is_read: true }))
                 );
                 setUnreadCount(0);
+                console.log('🔢 Unread count reset to 0');
+            } else {
+                console.error('❌ Mark all as read failed with status:', response.status);
+                const errorData = await response.text();
+                console.error('Error response:', errorData);
             }
         } catch (error) {
-            console.error('Error marking all notifications as read:', error);
+            console.error('❌ Error marking all notifications as read:', error);
         }
     };
 
@@ -181,7 +221,7 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/notifications/${notificationId}`, {
+            const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -190,9 +230,17 @@ export const NotificationProvider = ({ children }) => {
             });
 
             if (response.ok) {
-                setNotifications(prev =>
-                    prev.filter(notification => notification.id !== notificationId)
-                );
+                setNotifications(prev => {
+                    const notificationToDelete = prev.find(n => n.id === notificationId);
+                    const wasUnread = notificationToDelete && !notificationToDelete.is_read;
+                    
+                    // Update unread count if we're deleting an unread notification
+                    if (wasUnread) {
+                        setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+                    }
+                    
+                    return prev.filter(notification => notification.id !== notificationId);
+                });
             }
         } catch (error) {
             console.error('Error deleting notification:', error);
@@ -203,7 +251,7 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await fetch('http://localhost:5000/api/notifications', {
+            const response = await fetch(`${API_BASE_URL}/notifications`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

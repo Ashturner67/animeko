@@ -16,8 +16,8 @@ class User {
         let paramCount = 1;
         
         if (username) {
-            query += ` AND u.username ILIKE $${paramCount++}`;
-            params.push(`%${username}%`);
+            query += ` AND (u.username ILIKE $${paramCount++} OR u.display_name ILIKE $${paramCount++})`;
+            params.push(`%${username}%`, `%${username}%`);
         }
         
         // Apply visibility filtering - now includes private profiles in search results

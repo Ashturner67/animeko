@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check, Trash2 } from 'react-feather';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/NotificationBell.css';
@@ -7,6 +8,7 @@ import '../styles/NotificationBell.css';
 const NotificationBell = () => {
     const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications } = useNotifications();
     const { user, isAdmin } = useAuth();
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -27,9 +29,29 @@ const NotificationBell = () => {
     // Don't show notification bell for unauthenticated users or admins
     if (!user || isAdmin) return null;
 
+    const getNavigationUrl = (notification) => {
+        switch (notification.type) {
+            case 'anime_recommend':
+                return `/anime/${notification.related_id}`;
+            case 'friend_request':
+            case 'friend_accept':
+                return `/profile/${notification.sender_id}`;
+            default:
+                return null;
+        }
+    };
+
     const handleNotificationClick = (notification) => {
+        // Mark as read if unread
         if (!notification.is_read) {
             markAsRead(notification.id);
+        }
+        
+        // Navigate to related page
+        const url = getNavigationUrl(notification);
+        if (url) {
+            setIsOpen(false); // Close the dropdown
+            navigate(url);
         }
     };
 
@@ -115,55 +137,63 @@ const NotificationBell = () => {
                                 <p>No notifications yet</p>
                             </div>
                         ) : (
-                            recentNotifications.map((notification) => (
-                                <div
-                                    key={notification.id}
-                                    className={`notification-item ${!notification.is_read ? 'unread' : ''}`}
-                                    onClick={() => handleNotificationClick(notification)}
-                                >
-                                    <div className="notification-icon">
-                                        {getNotificationIcon(notification.type)}
-                                    </div>
-                                    <div className="notification-content">
-                                        <div className="notification-message">
-                                            <span className="sender-name">
-                                                {notification.sender_display_name || notification.sender_username || 'System'}
-                                            </span>
-                                            {' '}
-                                            <span className="message-text">
-                                                {notification.message}
-                                            </span>
+                            recentNotifications.map((notification) => {
+                                const isClickable = getNavigationUrl(notification) !== null;
+                                return (
+                                    <div
+                                        key={notification.id}
+                                        className={`notification-item ${!notification.is_read ? 'unread' : ''} ${isClickable ? 'clickable' : ''}`}
+                                        onClick={() => handleNotificationClick(notification)}
+                                        style={{ cursor: isClickable ? 'pointer' : 'default' }}
+                                    >
+                                        <div className="notification-icon">
+                                            {getNotificationIcon(notification.type)}
                                         </div>
-                                        <div className="notification-time">
-                                            {formatTimeAgo(notification.created_at)}
+                                        <div className="notification-content">
+                                            <div className="notification-message">
+                                                <span className="sender-name">
+                                                    {notification.sender_display_name || notification.sender_username || 'System'}
+                                                </span>
+                                                {' '}
+                                                <span className="message-text">
+                                                    {notification.message}
+                                                </span>
+                                            </div>
+                                            {notification.anime_title && (
+                                                <div className="anime-title">"{notification.anime_title}"</div>
+                                            )}
+                                            <div className="notification-time">
+                                                {formatTimeAgo(notification.created_at)}
+                                                {isClickable && <span className="click-hint"> • Click to view</span>}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="notification-controls">
-                                        {!notification.is_read && (
+                                        <div className="notification-controls">
+                                            {!notification.is_read && (
+                                                <button
+                                                    className="control-button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        markAsRead(notification.id);
+                                                    }}
+                                                    title="Mark as read"
+                                                >
+                                                    <Check size={14} />
+                                                </button>
+                                            )}
                                             <button
-                                                className="control-button"
+                                                className="control-button delete-button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    markAsRead(notification.id);
+                                                    deleteNotification(notification.id);
                                                 }}
-                                                title="Mark as read"
+                                                title="Delete"
                                             >
-                                                <Check size={14} />
+                                                <X size={14} />
                                             </button>
-                                        )}
-                                        <button
-                                            className="control-button delete-button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteNotification(notification.id);
-                                            }}
-                                            title="Delete"
-                                        >
-                                            <X size={14} />
-                                        </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
 
