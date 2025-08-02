@@ -54,6 +54,7 @@ const allowedOrigins = [
     'http://localhost:5000',
     process.env.CLIENT_URL,
     process.env.FRONTEND_URL,
+    process.env.CORS_ORIGIN,
 ].filter(Boolean);
 
 const corsOptions = {
