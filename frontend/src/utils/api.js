@@ -1,8 +1,8 @@
 // API utility functions for handling visibility and authentication
 
-// Use environment variable or fallback to current host
-const API_BASE_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5000/api`;
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
+// Use environment variable or fallback to relative URLs for development
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_BACKEND_URL?.replace('/api', '') || `${window.location.protocol}//${window.location.hostname}:5000`;
 
 export { API_BASE_URL, SOCKET_URL };
 

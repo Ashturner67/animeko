@@ -1,9 +1,12 @@
 # Node.js
 node_modules/
 build/
+dist/
 .env
+.env.local
+.env.production
 
-#Project Related Suggestions
+# Project Related Suggestions
 project_review/
 
 # Python
@@ -21,10 +24,19 @@ venv/
 
 # Logs
 *.log
+logs/
 
 # OS generated files
 .DS_Store
 thumbs.db
 
-# Markdown
-*.md
+# Deployment
+.vercel
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/

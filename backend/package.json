@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
-    "start": "nodemon start.js",
-    "start:direct": "nodemon server.js",
+    "start": "node start.js",
+    "dev": "nodemon start.js",
+    "start:direct": "node server.js",
     "start:prod": "node start.js"
   },
   "devDependencies": {
