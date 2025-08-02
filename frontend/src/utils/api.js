@@ -18,9 +18,20 @@ export const buildApiUrl = (endpoint) => {
 
 // Enhanced fetch wrapper that automatically handles the base URL
 export const apiFetch = (endpoint, options = {}) => {
-  const url = endpoint.startsWith('/api') 
-    ? (import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}${endpoint.replace('/api', '')}` : endpoint)
-    : buildApiUrl(endpoint);
+  let url;
+  
+  if (import.meta.env.VITE_BACKEND_URL) {
+    // In production, use the full backend URL
+    // If endpoint starts with /api, replace it since VITE_BACKEND_URL already includes /api
+    if (endpoint.startsWith('/api')) {
+      url = `${import.meta.env.VITE_BACKEND_URL}${endpoint.replace('/api', '')}`;
+    } else {
+      url = `${import.meta.env.VITE_BACKEND_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    }
+  } else {
+    // In development, use relative URLs
+    url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  }
   
   return fetch(url, {
     ...options,
