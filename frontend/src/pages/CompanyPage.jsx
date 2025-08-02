@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/CompanyPage.css';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiFetch } from '../utils/api';
 
 export default function CompanyPage() {
     const {companyId} = useParams();

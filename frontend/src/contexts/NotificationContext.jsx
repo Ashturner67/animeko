@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { io } from 'socket.io-client';
-import { API_BASE_URL, SOCKET_URL } from '../utils/api';
+import { API_BASE_URL, SOCKET_URL, apiFetch } from '../utils/api';
 
 const NotificationContext = createContext();
 
