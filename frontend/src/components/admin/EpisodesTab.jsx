@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { apiFetch } from '../../utils/api';
 import { X } from 'react-feather';
 
 const EpisodesTab = ({ searchQuery }) => {
@@ -210,7 +211,7 @@ const EpisodesTab = ({ searchQuery }) => {
             }
 
             // Fetch detailed episode data
-            const response = await fetch(`/api/episodes/${episodeId}/details`, {
+            const response = await apiFetch(`/api/episodes/${episodeId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -256,7 +257,7 @@ const EpisodesTab = ({ searchQuery }) => {
                 throw new Error('Invalid episode ID format');
             }
 
-            const response = await fetch(`/api/episodes/${episodeId}`, {
+            const response = await apiFetch(`/api/episodes/${episodeId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

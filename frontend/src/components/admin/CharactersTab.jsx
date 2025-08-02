@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { apiFetch } from '../../utils/api';
 import { X } from 'react-feather';
 import '../../styles/AdminDropdown.css';
 import '../../styles/AnimeImageInput.css';
@@ -273,7 +274,7 @@ const CharactersTab = ({ searchQuery }) => {
             setEditingId(charId);
             
             // Fetch detailed character data with anime associations
-            const response = await fetch(`/api/characters/${charId}/details`, {
+            const response = await apiFetch(`/api/characters/${charId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -312,7 +313,7 @@ const CharactersTab = ({ searchQuery }) => {
             }
 
             setLoading(true);
-            const response = await fetch(`/api/characters/${charId}`, {
+            const response = await apiFetch(`/api/characters/${charId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

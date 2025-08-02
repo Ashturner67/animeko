@@ -12,7 +12,7 @@ export default function CompanyPage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch(`/api/company/${companyId}`)
+        apiFetch(`/api/company/${companyId}`)
             .then(res => {
                 if (!res.ok) throw new Error(`Status ${res.status}`);
                 return res.json();

@@ -18,7 +18,7 @@ export default function VAPage() {
 
     // fetch VA details
     useEffect(() => {
-        fetch(`/api/voice-actors/${vaId}`)
+        apiFetch(`/api/voice-actors/${vaId}`)
             .then(r => {
                 if (!r.ok) throw new Error(r.status);
                 return r.json();

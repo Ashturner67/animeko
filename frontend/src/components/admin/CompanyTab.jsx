@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
+import { apiFetch } from '../../utils/api';
 
 const CompanyTab = ({searchQuery}) => {
     const {token} = useAuth();
@@ -149,7 +150,7 @@ const CompanyTab = ({searchQuery}) => {
                 showError('Invalid company ID format');
                 return;
             }
-            const response = await fetch(`/api/company/${companyId}`, {
+            const response = await apiFetch(`/api/company/${companyId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

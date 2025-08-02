@@ -19,7 +19,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
     useEffect(() => {
         if (!user) return;
 
-        fetch(`/api/anime-library/${anime.id}`, {
+        apiFetch(`/api/anime-library/${anime.id}`, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(r => {
@@ -84,7 +84,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
                 });
                 setLibraryStatus('Planned to Watch');
             } else if (action === 'update') {
-                await fetch(`/api/anime-library/${anime.id}`, {
+                await apiFetch(`/api/anime-library/${anime.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
                 });
                 setLibraryStatus(newStatus);
             } else if (action === 'remove') {
-                await fetch(`/api/anime-library/${anime.id}`, {
+                await apiFetch(`/api/anime-library/${anime.id}`, {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${token}` }
                 });

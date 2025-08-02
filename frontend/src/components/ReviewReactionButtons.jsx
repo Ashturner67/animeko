@@ -32,7 +32,7 @@ const ReviewReactionButtons = ({ reviewId, initialLikes = 0, initialDislikes = 0
             
             // If clicking the same reaction type, remove it
             if (currentUserReaction === reactionType) {
-                response = await fetch(`/api/reviews/${reviewId}/react`, {
+                response = await apiFetch(`/api/reviews/${reviewId}/react`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -41,7 +41,7 @@ const ReviewReactionButtons = ({ reviewId, initialLikes = 0, initialDislikes = 0
                 });
             } else {
                 // Add or update reaction
-                response = await fetch(`/api/reviews/${reviewId}/react`, {
+                response = await apiFetch(`/api/reviews/${reviewId}/react`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

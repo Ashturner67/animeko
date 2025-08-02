@@ -51,7 +51,7 @@ const FriendRecommendations = ({ limit = 10 }) => {
 
     const dismissRecommendation = async (recommendationId) => {
         try {
-            const response = await fetch(`/api/recommendations/${recommendationId}/dismiss`, {
+            const response = await apiFetch(`/api/recommendations/${recommendationId}/dismiss`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

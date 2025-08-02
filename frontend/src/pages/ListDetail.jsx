@@ -82,7 +82,7 @@ export default function ListDetail() {
         
         const timeout = setTimeout(() => {
             setIsSearching(true);
-            fetch(`${baseUrl}/api/animes?title=${encodeURIComponent(searchTerm)}`, {
+            apiFetch(`${baseUrl}/api/animes?title=${encodeURIComponent(searchTerm)}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -136,7 +136,7 @@ export default function ListDetail() {
 
             const updatedItems = [...list.items, newEntry];
 
-            const response = await fetch(`${baseUrl}/api/lists/${id}`, {
+            const response = await apiFetch(`${baseUrl}/api/lists/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export default function ListDetail() {
         try {
             const updatedEntries = list.items.filter((i) => i.anime_id !== animeId);
 
-            const response = await fetch(`${baseUrl}/api/lists/${id}`, {
+            const response = await apiFetch(`${baseUrl}/api/lists/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ export default function ListDetail() {
                 return titleA.localeCompare(titleB);
             });
 
-            const response = await fetch(`${baseUrl}/api/lists/${id}`, {
+            const response = await apiFetch(`${baseUrl}/api/lists/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -266,7 +266,7 @@ export default function ListDetail() {
             
             // Re-fetch the list to ensure consistency
             try {
-                const res = await fetch(`${baseUrl}/api/lists/${id}`, {
+                const res = await apiFetch(`${baseUrl}/api/lists/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -307,7 +307,7 @@ export default function ListDetail() {
         setSaving(true);
         try {
             const baseUrl = '';
-            const response = await fetch(`${baseUrl}/api/lists/${id}/metadata`, {
+            const response = await apiFetch(`${baseUrl}/api/lists/${id}/metadata`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -357,7 +357,7 @@ export default function ListDetail() {
         setDeleting(true);
         const baseUrl = '';
         try {
-            const response = await fetch(`${baseUrl}/api/lists/${id}`, {
+            const response = await apiFetch(`${baseUrl}/api/lists/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

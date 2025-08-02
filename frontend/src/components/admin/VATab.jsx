@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
+import { apiFetch } from '../../utils/api';
 import '../../styles/AnimeImageInput.css';
 
 const VATab = ({searchQuery}) => {
@@ -196,7 +197,7 @@ const VATab = ({searchQuery}) => {
             }
 
             setLoading(true);
-            const response = await fetch(`/api/voice-actors/${vaId}`, {
+            const response = await apiFetch(`/api/voice-actors/${vaId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

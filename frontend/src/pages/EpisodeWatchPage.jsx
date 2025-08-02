@@ -22,13 +22,13 @@ function EpisodeWatchPage() {
             
             try {
                 // Fetch anime details
-                const animeResponse = await fetch(`/api/anime/${animeId}`);
+                const animeResponse = await apiFetch(`/api/anime/${animeId}`);
                 if (!animeResponse.ok) throw new Error('Failed to fetch anime');
                 const animeData = await animeResponse.json();
                 setAnime(animeData);
 
                 // Fetch all episodes for this anime
-                const episodesResponse = await fetch(`/api/episodes/anime/${animeId}`);
+                const episodesResponse = await apiFetch(`/api/episodes/anime/${animeId}`);
                 if (!episodesResponse.ok) throw new Error('Failed to fetch episodes');
                 const episodesData = await episodesResponse.json();
                 setEpisodes(episodesData);
@@ -39,7 +39,7 @@ function EpisodeWatchPage() {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
                 
-                const episodeResponse = await fetch(`/api/episodes/anime/${animeId}/episode/${episodeNumber}`, {
+                const episodeResponse = await apiFetch(`/api/episodes/anime/${animeId}/episode/${episodeNumber}`, {
                     headers
                 });
                 if (!episodeResponse.ok) {
@@ -83,7 +83,7 @@ function EpisodeWatchPage() {
         if (!user || !token) return;
         
         try {
-            const response = await fetch(`/api/watch/progress/${episodeId}`, {
+            const response = await apiFetch(`/api/watch/progress/${episodeId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

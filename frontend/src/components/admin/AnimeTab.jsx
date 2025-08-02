@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { apiFetch } from '../../utils/api';
 import { X } from 'react-feather'; // For the close icon in selected tags
 import '../../styles/AnimeImageInput.css';
 import '../../styles/AdminDropdowns.css';
@@ -322,7 +323,7 @@ const AnimeTab = ({searchQuery}) => {
             setEditingId(animeId);
 
             // Fetch detailed anime data
-            const response = await fetch(`/api/animes/${animeId}/details`, {
+            const response = await apiFetch(`/api/animes/${animeId}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -375,7 +376,7 @@ const AnimeTab = ({searchQuery}) => {
                 throw new Error('Invalid anime ID format');
             }
 
-            const response = await fetch(`/api/animes/${animeId}`, {
+            const response = await apiFetch(`/api/animes/${animeId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

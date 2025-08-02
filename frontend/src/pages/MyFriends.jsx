@@ -81,7 +81,7 @@ export default function MyFriends() {
             }
 
             try {
-                const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+                const response = await apiFetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -119,7 +119,7 @@ export default function MyFriends() {
     // Handle friend request response
     const respondRequest = async (requesterId, action) => {
         try {
-            const response = await fetch(`/api/friends/requests/${requesterId}/${action}`, {
+            const response = await apiFetch(`/api/friends/requests/${requesterId}/${action}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -161,7 +161,7 @@ export default function MyFriends() {
     // Send friend request
     const sendFriendRequest = async (toUserId) => {
         try {
-            const response = await fetch(`/api/friends/requests`, {
+            const response = await apiFetch(`/api/friends/requests`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ export default function MyFriends() {
         }
 
         try {
-            const response = await fetch(`/api/friends/${friendId}`, {
+            const response = await apiFetch(`/api/friends/${friendId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -246,7 +246,7 @@ export default function MyFriends() {
         }
 
         try {
-            const response = await fetch(`/api/friends/requests/${addresseeId}`, {
+            const response = await apiFetch(`/api/friends/requests/${addresseeId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

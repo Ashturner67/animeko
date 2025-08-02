@@ -220,7 +220,7 @@ export default function AnimePage() {
     // 1) Fetch anime details
     // ───────────────────────────────────────────────────
     useEffect(() => {
-        fetch(`/api/anime/${animeId}`)
+        apiFetch(`/api/anime/${animeId}`)
             .then((r) => {
                 if (!r.ok) throw new Error(`Status ${r.status}`);
                 return r.json();
@@ -236,7 +236,7 @@ export default function AnimePage() {
     // 2) Fetch average rating & rank
     // ───────────────────────────────────────────────────
     useEffect(() => {
-        fetch(`/api/anime/${animeId}/rating`)
+        apiFetch(`/api/anime/${animeId}/rating`)
             .then((r) => {
                 if (!r.ok) {
                     if (r.status !== 404) console.error('Rating fetch error', r.status);
@@ -284,7 +284,7 @@ export default function AnimePage() {
         let isMounted = true;
         setLibraryLoading(true);
         
-        fetch(`/api/anime-library/${animeId}`, {
+        apiFetch(`/api/anime-library/${animeId}`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then((r) => {
@@ -367,7 +367,7 @@ export default function AnimePage() {
         if (!token || libraryLoading) return;
         setLibraryLoading(true);
         try {
-            const res = await fetch(`/api/anime-library/${animeId}`, {
+            const res = await apiFetch(`/api/anime-library/${animeId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -395,7 +395,7 @@ export default function AnimePage() {
         if (!token || libraryLoading) return;
         setLibraryLoading(true);
         try {
-            const res = await fetch(`/api/anime-library/${animeId}`, {
+            const res = await apiFetch(`/api/anime-library/${animeId}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -423,7 +423,7 @@ export default function AnimePage() {
         const fetchReviewsAndReactions = async () => {
             try {
                 // Fetch reviews
-                const reviewsResponse = await fetch(`/api/anime/${animeId}/reviews`);
+                const reviewsResponse = await apiFetch(`/api/anime/${animeId}/reviews`);
                 if (!reviewsResponse.ok) throw new Error(`Status ${reviewsResponse.status}`);
                 
                 const allReviews = await reviewsResponse.json();
@@ -494,7 +494,7 @@ export default function AnimePage() {
         const fetchEpisodes = async () => {
             try {
                 // Fetch episodes
-                const r = await fetch(`/api/episodes/anime/${animeId}`);
+                const r = await apiFetch(`/api/episodes/anime/${animeId}`);
                 if (!r.ok) throw new Error(`Status ${r.status}`);
                 
                 const episodesData = await r.json();
@@ -504,7 +504,7 @@ export default function AnimePage() {
                 // Fetch episode progress for authenticated users
                 if (user && token && arr.length > 0) {
                     try {
-                        const progressResponse = await fetch(`/api/watch/history?animeId=${animeId}`, {
+                        const progressResponse = await apiFetch(`/api/watch/history?animeId=${animeId}`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             }
@@ -569,7 +569,7 @@ export default function AnimePage() {
         setReviewLoading(true);
 
         try {
-            const res = await fetch(`/api/anime/${animeId}/review`, {
+            const res = await apiFetch(`/api/anime/${animeId}/review`, {
                 method: 'POST', headers: {
                     'Content-Type': 'application/json', Authorization: `Bearer ${token}`,
                 }, body: JSON.stringify({rating, content: content.trim()}),
@@ -582,13 +582,13 @@ export default function AnimePage() {
             setUserReview(saved);
 
             // Re‐fetch rating & rank
-            const ratingRes = await fetch(`/api/anime/${animeId}/rating`);
+            const ratingRes = await apiFetch(`/api/anime/${animeId}/rating`);
             const ratingData = await ratingRes.json();
             setAverageRating(ratingData.averageRating);
             setRank(ratingData.rank);
 
             // Re‐fetch all reviews
-            const allRes = await fetch(`/api/anime/${animeId}/reviews`);
+            const allRes = await apiFetch(`/api/anime/${animeId}/reviews`);
             const allData = await allRes.json();
             const arr = Array.isArray(allData) ? allData : [];
             setReviews(arr);
@@ -629,7 +629,7 @@ export default function AnimePage() {
         setReviewLoading(true);
 
         try {
-            const res = await fetch(`/api/anime/${animeId}/review`, {
+            const res = await apiFetch(`/api/anime/${animeId}/review`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -645,13 +645,13 @@ export default function AnimePage() {
             setReviewForm({ rating: 0, content: '' }); // Reset form
 
             // Re-fetch rating & rank
-            const ratingRes = await fetch(`/api/anime/${animeId}/rating`);
+            const ratingRes = await apiFetch(`/api/anime/${animeId}/rating`);
             const ratingData = await ratingRes.json();
             setAverageRating(ratingData.averageRating);
             setRank(ratingData.rank);
 
             // Re-fetch all reviews
-            const allRes = await fetch(`/api/anime/${animeId}/reviews`);
+            const allRes = await apiFetch(`/api/anime/${animeId}/reviews`);
             const allData = await allRes.json();
             const arr = Array.isArray(allData) ? allData : [];
             setReviews(arr);

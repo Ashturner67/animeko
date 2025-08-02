@@ -19,12 +19,12 @@ export default function GenrePage() {
                 setLoading(true);
                 
                 // 1. Fetch genre details
-                const genreRes = await fetch(`/api/genre/${genreId}`);
+                const genreRes = await apiFetch(`/api/genre/${genreId}`);
                 if (!genreRes.ok) throw new Error(`Status ${genreRes.status}`);
                 const genreData = await genreRes.json();
                 
                 // 2. Fetch anime by genre
-                const animeRes = await fetch(`/api/animes?genre=${encodeURIComponent(genreData.name)}`);
+                const animeRes = await apiFetch(`/api/animes?genre=${encodeURIComponent(genreData.name)}`);
                 if (!animeRes.ok) throw new Error(`Status ${animeRes.status}`);
                 const animeData = await animeRes.json();
                 

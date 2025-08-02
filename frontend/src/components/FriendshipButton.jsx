@@ -21,7 +21,7 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
             if (!targetUserId || targetUserId === lastFetchedUserId) return;
 
             try {
-                const response = await fetch(`/api/friends/status/${targetUserId}`, {
+                const response = await apiFetch(`/api/friends/status/${targetUserId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -63,21 +63,21 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
                     break;
 
                 case 'cancel_request':
-                    response = await fetch(`/api/friends/requests/${targetUserId}`, {
+                    response = await apiFetch(`/api/friends/requests/${targetUserId}`, {
                         method: 'DELETE',
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     break;
 
                 case 'accept_request':
-                    response = await fetch(`/api/friends/requests/${targetUserId}/accept`, {
+                    response = await apiFetch(`/api/friends/requests/${targetUserId}/accept`, {
                         method: 'POST',
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     break;
 
                 case 'reject_request':
-                    response = await fetch(`/api/friends/requests/${targetUserId}/reject`, {
+                    response = await apiFetch(`/api/friends/requests/${targetUserId}/reject`, {
                         method: 'POST',
                         headers: { Authorization: `Bearer ${token}` }
                     });
@@ -89,7 +89,7 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
                         setLoading(false);
                         return;
                     }
-                    response = await fetch(`/api/friends/${targetUserId}`, {
+                    response = await apiFetch(`/api/friends/${targetUserId}`, {
                         method: 'DELETE',
                         headers: { Authorization: `Bearer ${token}` }
                     });

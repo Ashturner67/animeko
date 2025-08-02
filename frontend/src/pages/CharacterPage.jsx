@@ -19,7 +19,7 @@ export default function CharacterPage() {
 
     // fetch character details
     useEffect(() => {
-        fetch(`/api/characters/${charId}`)
+        apiFetch(`/api/characters/${charId}`)
             .then(res => {
                 if (!res.ok) throw new Error(res.status);
                 return res.json();

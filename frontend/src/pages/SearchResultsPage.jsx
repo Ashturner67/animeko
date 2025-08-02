@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import AnimeCard from '../components/AnimeCard';
 import ListCard from '../components/ListCard';
 import CastCard from '../components/CastCard';
@@ -59,7 +60,7 @@ function SearchResultsPage() {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
                 
-                const response = await fetch(`/api/search?${params.toString()}`, {
+                const response = await apiFetch(`/api/search?${params.toString()}`, {
                     headers: headers
                 });
                 

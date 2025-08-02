@@ -70,7 +70,7 @@ function AnimeLibrary() {
     const handleUpdateStatus = async (animeId, newStatus) => {
         if (!token || !isOwnLibrary) return;
         try {
-            const response = await fetch(`/api/anime-library/${animeId}`, {
+            const response = await apiFetch(`/api/anime-library/${animeId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ function AnimeLibrary() {
             return;
         }
         try {
-            const response = await fetch(`/api/anime-library/${animeId}`, {
+            const response = await apiFetch(`/api/anime-library/${animeId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
             });

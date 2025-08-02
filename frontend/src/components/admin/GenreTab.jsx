@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useAuth} from '../../contexts/AuthContext';
+import { apiFetch } from '../../utils/api';
 
 const GenreTab = ({searchQuery}) => {
     const {token} = useAuth();
@@ -189,7 +190,7 @@ const GenreTab = ({searchQuery}) => {
             }
             
             console.log(`Sending DELETE request for genre ID: ${genreId}`);
-            const response = await fetch(`/api/genre/${genreId}`, {
+            const response = await apiFetch(`/api/genre/${genreId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

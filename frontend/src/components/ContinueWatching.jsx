@@ -46,7 +46,7 @@ const ContinueWatching = ({ limit = 10 }) => {
 
     const removeFromContinueWatching = async (episodeId) => {
         try {
-            const response = await fetch(`/api/watch/continue-watching/${episodeId}`, {
+            const response = await apiFetch(`/api/watch/continue-watching/${episodeId}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`
