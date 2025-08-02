@@ -237,7 +237,7 @@ const AnimeTab = ({searchQuery}) => {
         }
         
         try {
-            const url = editingId 
+            const apiPath = editingId 
                 ? `/api/animes/${editingId}`
                 : '/api/animes';
             const method = editingId ? 'PUT' : 'POST';
@@ -260,21 +260,10 @@ const AnimeTab = ({searchQuery}) => {
                 }))
             };
 
-            const response = await fetch(url, {
+            const result = await apiFetch(apiPath, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(requestBody)
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                showError(errorData.message || (editingId ? 'Failed to update anime' : 'Failed to add anime'));
-                setLoading(false);
-                return;
-            }
 
             await fetchAnime();
             

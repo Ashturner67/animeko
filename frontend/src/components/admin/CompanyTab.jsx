@@ -77,31 +77,20 @@ const CompanyTab = ({searchQuery}) => {
             return;
         }
 
-        const url = editingId
+        const apiPath = editingId
             ? `/api/company/${editingId}`
             : '/api/company';
         const method = editingId ? 'PUT' : 'POST';
 
         try {
-            const response = await fetch(url, {
+            const result = await apiFetch(apiPath, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify({
                     name: formData.name.trim(),
                     country: formData.country.trim() || null,
                     founded: formData.founded || null
                 })
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                showError(errorData.message || (editingId ? 'Failed to update company' : 'Failed to add company'));
-                setLoading(false);
-                return;
-            }
 
             await fetchCompanies();
             

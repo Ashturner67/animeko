@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'react-feather';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import '../styles/FriendRecommendations.css';
 
 const FriendRecommendations = ({ limit = 10 }) => {
@@ -24,22 +25,15 @@ const FriendRecommendations = ({ limit = 10 }) => {
         setError(null);
 
         try {
-            const url = new URL('/api/recommendations/received', window.location.origin);
+            let endpoint = '/api/recommendations/received';
             if (limit) {
-                url.searchParams.append('limit', limit.toString());
+                endpoint += `?limit=${limit}`;
             }
 
-            const response = await fetch(url, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            const data = await apiFetch(endpoint, {
+                method: 'GET'
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch recommendations');
-            }
-
-            const data = await response.json();
             setRecommendations(data);
         } catch (err) {
             console.error('Error fetching recommendations:', err);
@@ -51,17 +45,9 @@ const FriendRecommendations = ({ limit = 10 }) => {
 
     const dismissRecommendation = async (recommendationId) => {
         try {
-            const response = await apiFetch(`/api/recommendations/${recommendationId}/dismiss`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            await apiFetch(`/api/recommendations/${recommendationId}/dismiss`, {
+                method: 'PUT'
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to dismiss recommendation');
-            }
 
             // Remove the dismissed recommendation from the list
             setRecommendations(prev => 

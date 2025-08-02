@@ -130,7 +130,7 @@ const EpisodesTab = ({ searchQuery }) => {
         }
         
         try {
-            const url = editingId 
+            const apiPath = editingId 
                 ? `/api/episodes/${editingId}`
                 : '/api/episodes';
             const method = editingId ? 'PUT' : 'POST';
@@ -145,21 +145,10 @@ const EpisodesTab = ({ searchQuery }) => {
                 premium_only: formData.premium_only
             };
 
-            const response = await fetch(url, {
+            const result = await apiFetch(apiPath, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(requestBody)
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                showError(errorData.message || (editingId ? 'Failed to update episode' : 'Failed to add episode'));
-                setLoading(false);
-                return;
-            }
 
             await fetchEpisodes();
             

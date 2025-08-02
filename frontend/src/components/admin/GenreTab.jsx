@@ -88,38 +88,25 @@ const GenreTab = ({searchQuery}) => {
             return;
         }
 
-        const url = editingId
+        const apiPath = editingId
             ? `/api/genre/${editingId}`
             : '/api/genre';
         const method = editingId ? 'PUT' : 'POST';
 
         try {
-            console.log(`Sending ${method} request to:`, url);
+            console.log(`Sending ${method} request to:`, apiPath);
             const requestBody = {
                 name: formData.name.trim(),
                 description: formData.description || null
             };
             console.log('Request payload:', requestBody);
             
-            const response = await fetch(url, {
+            const result = await apiFetch(apiPath, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(requestBody)
             });
 
-            const responseData = await response.json().catch(() => ({}));
-            console.log('API response:', { status: response.status, data: responseData });
-
-            if (!response.ok) {
-                const errorMsg = responseData.message || 
-                    (editingId ? 'Failed to update genre' : 'Failed to add genre');
-                console.error('API error:', errorMsg);
-                throw new Error(errorMsg);
-            }
-
+            console.log('API response:', result);
 
             console.log('Genre operation successful, refreshing list...');
             await fetchGenres();

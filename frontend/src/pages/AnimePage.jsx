@@ -93,31 +93,12 @@ export default function AnimePage() {
         }
 
         const apiPath = `/api/lists/anime/${animeId}?page=${page}&limit=6`;
-        const url = apiPath;
-
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        };
 
         try {
-            const response = await fetch(url, {
+            const result = await apiFetch(apiPath, {
                 method: 'GET',
-                headers,
-                credentials: 'include',
-                mode: 'cors',
                 signal
             });
-
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({
-                    message: `HTTP ${response.status} ${response.statusText}`
-                }));
-                throw new Error(error.message || 'Failed to fetch lists');
-            }
-
-            const result = await response.json();
             
             // Normalize response format
             if (Array.isArray(result)) {

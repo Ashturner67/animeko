@@ -110,18 +110,14 @@ const VATab = ({searchQuery}) => {
             return;
         }
 
-        const url = editingId
+        const apiPath = editingId
             ? `/api/voice-actors/${editingId}`
             : '/api/voice-actors';
         const method = editingId ? 'PUT' : 'POST';
 
         try {
-            const response = await fetch(url, {
+            const result = await apiFetch(apiPath, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify({
                     name: formData.name.trim(),
                     birthDate: formData.birth_date || null,
@@ -129,11 +125,6 @@ const VATab = ({searchQuery}) => {
                     image_url: formData.image_url || null
                 })
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || (editingId ? 'Failed to update voice actor' : 'Failed to add voice actor'));
-            }
 
             await fetchVoiceActors();
             

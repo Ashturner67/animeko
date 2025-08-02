@@ -17,7 +17,7 @@ export const buildApiUrl = (endpoint) => {
 };
 
 // Enhanced fetch wrapper that automatically handles the base URL
-export const apiFetch = (endpoint, options = {}) => {
+export const apiFetch = async (endpoint, options = {}) => {
   let url;
   
   if (import.meta.env.VITE_BACKEND_URL) {
@@ -33,7 +33,7 @@ export const apiFetch = (endpoint, options = {}) => {
     url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   }
   
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -41,6 +41,13 @@ export const apiFetch = (endpoint, options = {}) => {
       ...options.headers
     }
   });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `HTTP error ${response.status}`);
+  }
+
+  return await response.json();
 };
 
 // Get auth headers if user is logged in
