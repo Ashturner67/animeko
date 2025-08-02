@@ -32,8 +32,6 @@ export const apiFetch = (endpoint, options = {}) => {
   });
 };
 
-export { API_BASE_URL, SOCKET_URL };
-
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
