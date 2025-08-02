@@ -1,20 +1,9 @@
 // API utility functions for handling visibility and authentication
 
 // Use environment variable or fallback to relative URLs for development
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_BACKEND_URL?.replace('/api', '') || `${window.location.protocol}//${window.location.hostname}:5000`;
 
-export { API_BASE_URL, SOCKET_URL };
-
-// Helper function to build API URLs
-export const buildApiUrl = (endpoint) => {
-  // If we have a full backend URL, use it
-  if (import.meta.env.VITE_BACKEND_URL) {
-    return `${import.meta.env.VITE_BACKEND_URL}${endpoint.startsWith('/') ? endpoint.replace('/api', '') : `/${endpoint}`}`;
-  }
-  // Otherwise use relative URL (for development)
-  return endpoint.startsWith('/api') ? endpoint : `/api/${endpoint.replace(/^\//, '')}`;
-};
+export { SOCKET_URL };
 
 // Enhanced fetch wrapper that automatically handles the base URL and maintains backward compatibility
 export const apiFetch = async (endpoint, options = {}) => {
@@ -22,12 +11,10 @@ export const apiFetch = async (endpoint, options = {}) => {
   
   if (import.meta.env.VITE_BACKEND_URL) {
     // In production, use the full backend URL
-    // If endpoint starts with /api, replace it since VITE_BACKEND_URL already includes /api
-    if (endpoint.startsWith('/api')) {
-      url = `${import.meta.env.VITE_BACKEND_URL}${endpoint.replace('/api', '')}`;
-    } else {
-      url = `${import.meta.env.VITE_BACKEND_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-    }
+    // VITE_BACKEND_URL should be: https://animeko.onrender.com/api
+    // So we need to remove /api from endpoint if it exists
+    const cleanEndpoint = endpoint.replace(/^\/api/, '');
+    url = `${import.meta.env.VITE_BACKEND_URL}${cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`}`;
   } else {
     // In development, use relative URLs
     url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
@@ -54,40 +41,24 @@ export const getAuthHeaders = () => {
 
 // Generic API call with error handling for visibility restrictions
 export const apiCall = async (endpoint, options = {}) => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const headers = {
-    'Content-Type': 'application/json',
-    ...getAuthHeaders(),
-    ...options.headers
-  };
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers
-    });
-
-    // Handle different error types
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      if (response.status === 403) {
-        // Visibility restriction - return a specific error type
-        throw new VisibilityError(errorData.message || 'Access denied');
-      } else if (response.status === 404) {
-        throw new NotFoundError(errorData.message || 'Resource not found');
-      } else {
-        throw new Error(errorData.message || `HTTP error ${response.status}`);
-      }
+  // Use apiFetch instead of constructing URL manually
+  const response = await apiFetch(endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`, options);
+  
+  // Handle different error types
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    
+    if (response.status === 403) {
+      // Visibility restriction - return a specific error type
+      throw new VisibilityError(errorData.message || 'Access denied');
+    } else if (response.status === 404) {
+      throw new NotFoundError(errorData.message || 'Resource not found');
+    } else {
+      throw new Error(errorData.message || `HTTP error ${response.status}`);
     }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof VisibilityError || error instanceof NotFoundError) {
-      throw error;
-    }
-    throw new Error(`Network error: ${error.message}`);
   }
+
+  return await response.json();
 };
 
 // Custom error classes for better error handling

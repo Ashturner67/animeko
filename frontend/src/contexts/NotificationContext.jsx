@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { io } from 'socket.io-client';
-import { API_BASE_URL, SOCKET_URL, apiFetch } from '../utils/api';
+import { SOCKET_URL, apiFetch } from '../utils/api';
 
 const NotificationContext = createContext();
 
@@ -102,7 +102,7 @@ export const NotificationProvider = ({ children }) => {
 
         try {
             setLoading(true);
-            const response = await apiFetch(`${API_BASE_URL}/notifications?page=${page}&limit=${limit}`, {
+            const response = await apiFetch(`/api/notifications?page=${page}&limit=${limit}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -131,7 +131,7 @@ export const NotificationProvider = ({ children }) => {
 
         try {
             console.log('📊 Fetching initial unread count...');
-            const response = await apiFetch(`${API_BASE_URL}/notifications/unread-count`, {
+            const response = await apiFetch(`/api/notifications/unread-count`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -154,7 +154,7 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await apiFetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+            const response = await apiFetch(`/api/notifications/${notificationId}/read`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -183,7 +183,7 @@ export const NotificationProvider = ({ children }) => {
 
         console.log('🔄 Attempting to mark all notifications as read...');
         try {
-            const response = await apiFetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+            const response = await apiFetch(`/api/notifications/mark-all-read`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -214,7 +214,7 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await apiFetch(`${API_BASE_URL}/notifications/${notificationId}`, {
+            const response = await apiFetch(`/api/notifications/${notificationId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -244,7 +244,7 @@ export const NotificationProvider = ({ children }) => {
         if (!token) return;
 
         try {
-            const response = await apiFetch(`${API_BASE_URL}/notifications`, {
+            const response = await apiFetch(`/api/notifications`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

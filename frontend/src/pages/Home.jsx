@@ -5,7 +5,7 @@ import AnimeCard from '../components/AnimeCard';
 import ContinueWatching from '../components/ContinueWatching';
 import FriendRecommendations from '../components/FriendRecommendations';
 import { useAuth } from '../contexts/AuthContext';
-import { buildApiUrl, apiFetch } from '../utils/api';
+import { apiFetch } from '../utils/api';
 
 // import the extracted styles
 import '../styles/Home.css';
