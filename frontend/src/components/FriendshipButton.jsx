@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import '../styles/FriendshipButton.css';
 
 const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => {
@@ -51,7 +52,7 @@ const FriendshipButton = ({ targetUserId, size = 'normal', onStatusChange }) => 
             
             switch (action) {
                 case 'send_request':
-                    response = await fetch('/api/friends/requests', {
+                    response = await apiFetch('/api/friends/requests', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

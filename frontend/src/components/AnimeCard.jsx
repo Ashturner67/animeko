@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/AnimeCard.css';
 
@@ -43,7 +44,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
         setFavLoading(true);
 
         try {
-            const response = await fetch('/api/favorites', {
+            const response = await apiFetch('/api/favorites', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ function AnimeCard({ anime, initialFavoriteStatus = false }) {
         setLoading(true);
         try {
             if (action === 'add') {
-                await fetch('/api/anime-library', {
+                await apiFetch('/api/anime-library', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

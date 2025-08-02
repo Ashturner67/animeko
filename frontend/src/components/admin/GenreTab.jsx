@@ -20,7 +20,7 @@ const GenreTab = ({searchQuery}) => {
         console.log('Fetching genres...');
         setLoading(true);
         try {
-            const response = await fetch('/api/genre');
+            const response = await apiFetch('/api/genre');
             console.log('Genres response status:', response.status);
             if (!response.ok) {
                 const errorText = await response.text();

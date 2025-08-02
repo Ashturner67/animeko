@@ -2,6 +2,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/VAPage.css';
 
@@ -32,7 +33,7 @@ export default function VAPage() {
     // fetch favorites
     useEffect(() => {
         if (!token) return;
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             headers: {Authorization: `Bearer ${token}`}
         })
             .then(r => r.json())
@@ -46,7 +47,7 @@ export default function VAPage() {
     const toggleFavorite = () => {
         if (!token) return;
         setFavLoading(true);
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             method: 'POST', 
             headers: {
                 'Content-Type': 'application/json', 

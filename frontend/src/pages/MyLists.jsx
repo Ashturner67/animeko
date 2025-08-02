@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {AuthContext} from '../contexts/AuthContext';
 import {useTheme} from '../contexts/ThemeContext';
+import { apiFetch } from '../utils/api';
 import ListCard from '../components/ListCard';
 
 function MyLists() {
@@ -13,7 +14,7 @@ function MyLists() {
     useEffect(() => {
         const fetchLists = async () => {
             try {
-                const response = await fetch('/api/lists', {
+                const response = await apiFetch('/api/lists', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -47,7 +48,7 @@ function MyLists() {
         if (!title) return;
 
         try {
-            const response = await fetch('/api/lists', {
+            const response = await apiFetch('/api/lists', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import '../styles/ContinueWatching.css';
 
 const ContinueWatching = ({ limit = 10 }) => {
@@ -23,7 +24,7 @@ const ContinueWatching = ({ limit = 10 }) => {
         setError(null);
 
         try {
-            const response = await fetch('/api/watch/continue-watching', {
+            const response = await apiFetch('/api/watch/continue-watching', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

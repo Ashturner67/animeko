@@ -2,6 +2,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/CharacterPage.css';
 
@@ -37,7 +38,7 @@ export default function CharacterPage() {
     // fetch favorites
     useEffect(() => {
         if (!token) return;
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             headers: {Authorization: `Bearer ${token}`}
         })
             .then(r => r.json())
@@ -51,7 +52,7 @@ export default function CharacterPage() {
     const toggleFavorite = () => {
         if (!token) return;
         setFavLoading(true);
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             method: 'POST', headers: {
                 'Content-Type': 'application/json', Authorization: `Bearer ${token}`
             }, body: JSON.stringify({entityType: 'character', entityId: +charId})

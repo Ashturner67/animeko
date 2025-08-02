@@ -5,6 +5,7 @@ import AnimeCard from '../components/AnimeCard';
 import ContinueWatching from '../components/ContinueWatching';
 import FriendRecommendations from '../components/FriendRecommendations';
 import { useAuth } from '../contexts/AuthContext';
+import { buildApiUrl, apiFetch } from '../utils/api';
 
 // import the extracted styles
 import '../styles/Home.css';
@@ -34,7 +35,7 @@ function Home() {
             return;
         }
 
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(r => r.json())
@@ -49,7 +50,7 @@ function Home() {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`/api/animes?sortField=${sortField}&sortOrder=${sortOrder}`);
+                const response = await apiFetch(`/api/animes?sortField=${sortField}&sortOrder=${sortOrder}`);
                 if (!response.ok) throw new Error(`Status ${response.status}`);
                 const data = await response.json();
                 setAnimeList(data);

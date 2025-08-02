@@ -55,7 +55,7 @@ const CharactersTab = ({ searchQuery }) => {
     
     const fetchAnimeList = async () => {
         try {
-            const response = await fetch('/api/animes');
+            const response = await apiFetch('/api/animes');
             if (response.ok) {
                 const data = await response.json();
                 setAnimeList(Array.isArray(data) ? data : []);
@@ -97,7 +97,7 @@ const CharactersTab = ({ searchQuery }) => {
     const fetchCharacters = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/characters', {
+            const response = await apiFetch('/api/characters', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -123,7 +123,7 @@ const CharactersTab = ({ searchQuery }) => {
 
     const fetchVoiceActors = async () => {
         try {
-            const response = await fetch('/api/voice-actors', {
+            const response = await apiFetch('/api/voice-actors', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

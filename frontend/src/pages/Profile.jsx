@@ -5,7 +5,7 @@ import {useAuth} from '../contexts/AuthContext';
 import VisibilityToggle from '../components/VisibilityToggle';
 import VisibilityRestriction from '../components/VisibilityRestriction';
 import FriendshipButton from '../components/FriendshipButton';
-import { fetchUserProfile, fetchUserFavorites, VisibilityError, NotFoundError } from '../utils/api';
+import { fetchUserProfile, fetchUserFavorites, VisibilityError, NotFoundError, apiFetch } from '../utils/api';
 import placeholderImg from '../images/image_not_available.jpg';
 import defaultAvatar from '../images/default_avatar.svg';
 import '../styles/Profile.css';
@@ -65,7 +65,7 @@ export default function Profile() {
 
                 if (isOwnProfile) {
                     // For own profile, fetch fresh data to get latest visibility settings
-                    const profileRes = await fetch('/api/auth/profile', {
+                    const profileRes = await apiFetch('/api/auth/profile', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
 
@@ -120,7 +120,7 @@ export default function Profile() {
             try {
                 if (isOwnProfile && token) {
                     // For own profile, use authenticated endpoint
-                    const response = await fetch('/api/favorites', {
+                    const response = await apiFetch('/api/favorites', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     

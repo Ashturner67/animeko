@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme
+import { apiFetch } from '../utils/api';
 import '../styles/PaymentConfirmationPage.css';
 
 const PaymentConfirmationPage = () => {
@@ -48,7 +49,7 @@ const PaymentConfirmationPage = () => {
 
               // Confirm payment with our backend
               try {
-                const confirmResponse = await fetch('/api/subscriptions/confirm-payment', {
+                const confirmResponse = await apiFetch('/api/subscriptions/confirm-payment', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',

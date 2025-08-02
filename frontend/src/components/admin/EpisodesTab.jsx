@@ -44,7 +44,7 @@ const EpisodesTab = ({ searchQuery }) => {
     const fetchEpisodes = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/episodes/admin', {
+            const response = await apiFetch('/api/episodes/admin', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ const EpisodesTab = ({ searchQuery }) => {
 
     const fetchAnimes = async () => {
         try {
-            const response = await fetch('/api/animes/admin', {
+            const response = await apiFetch('/api/animes/admin', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

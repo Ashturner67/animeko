@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { useAlert } from '../contexts/AlertContext';
+import { apiFetch } from '../utils/api';
 
 /**
  * A protected route component that ensures a user has an active subscription.
@@ -42,7 +43,7 @@ const SubscriptionProtectedRoute = ({ children }) => {
       try {
         // This is a lightweight endpoint that is protected by both `authenticate`
         // and `requireSubscription` middlewares. Its only purpose is to check access.
-        const response = await fetch('/api/premium-content-check', {
+        const response = await apiFetch('/api/premium-content-check', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 

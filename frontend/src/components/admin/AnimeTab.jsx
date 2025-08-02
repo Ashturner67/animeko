@@ -59,7 +59,7 @@ const AnimeTab = ({searchQuery}) => {
     
     const fetchGenres = async () => {
         try {
-            const response = await fetch('/api/genre');
+            const response = await apiFetch('/api/genre');
             if (response.ok) {
                 const data = await response.json();
                 // Normalize the genre data structure
@@ -116,7 +116,7 @@ const AnimeTab = ({searchQuery}) => {
     const fetchAnime = async () => {
         try {
             console.log('Fetching anime list...');
-            const response = await fetch('/api/animes/admin', {
+            const response = await apiFetch('/api/animes/admin', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -141,7 +141,7 @@ const AnimeTab = ({searchQuery}) => {
     const fetchCompanies = async () => {
         try {
             console.log('Fetching companies...');
-            const response = await fetch('/api/company');
+            const response = await apiFetch('/api/company');
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error('Failed to fetch companies: ' + errorText);

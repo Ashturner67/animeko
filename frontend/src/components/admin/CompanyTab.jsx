@@ -19,7 +19,7 @@ const CompanyTab = ({searchQuery}) => {
 
     const fetchCompanies = async () => {
         try {
-            const response = await fetch('/api/company');
+            const response = await apiFetch('/api/company');
             if (!response.ok) {
                 throw new Error('Failed to fetch companies');
             }

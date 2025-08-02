@@ -24,7 +24,7 @@ const VATab = ({searchQuery}) => {
     const fetchVoiceActors = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/voice-actors', {
+            const response = await apiFetch('/api/voice-actors', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

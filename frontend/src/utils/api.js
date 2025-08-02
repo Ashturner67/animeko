@@ -6,6 +6,34 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_BACKE
 
 export { API_BASE_URL, SOCKET_URL };
 
+// Helper function to build API URLs
+export const buildApiUrl = (endpoint) => {
+  // If we have a full backend URL, use it
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return `${import.meta.env.VITE_BACKEND_URL}${endpoint.startsWith('/') ? endpoint.replace('/api', '') : `/${endpoint}`}`;
+  }
+  // Otherwise use relative URL (for development)
+  return endpoint.startsWith('/api') ? endpoint : `/api/${endpoint.replace(/^\//, '')}`;
+};
+
+// Enhanced fetch wrapper that automatically handles the base URL
+export const apiFetch = (endpoint, options = {}) => {
+  const url = endpoint.startsWith('/api') 
+    ? (import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}${endpoint.replace('/api', '')}` : endpoint)
+    : buildApiUrl(endpoint);
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers
+    }
+  });
+};
+
+export { API_BASE_URL, SOCKET_URL };
+
 // Get auth headers if user is logged in
 export const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

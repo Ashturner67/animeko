@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'react-feather';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiFetch } from '../utils/api';
 import '../styles/AdvancedSearchForm.css';
 
 const AdvancedSearchForm = ({ onSearchParamsChange, initialParams = {}, isInNavbar = false }) => {
@@ -39,7 +40,7 @@ const AdvancedSearchForm = ({ onSearchParamsChange, initialParams = {}, isInNavb
 
     const fetchGenres = async () => {
         try {
-            const response = await fetch('/api/genre');
+            const response = await apiFetch('/api/genre');
             if (response.ok) {
                 const data = await response.json();
                 const normalizedGenres = Array.isArray(data) 

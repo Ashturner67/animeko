@@ -3,6 +3,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import defaultAvatar from '../images/default_avatar.svg';
 import ListCard from '../components/ListCard';
@@ -259,7 +260,7 @@ export default function AnimePage() {
     // ───────────────────────────────────────────────────
     useEffect(() => {
         if (!token) return;
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             headers: {Authorization: `Bearer ${token}`},
         })
             .then((r) => r.json())
@@ -320,7 +321,7 @@ export default function AnimePage() {
     const handleToggleFavorite = () => {
         if (!token) return;
         setFavLoading(true);
-        fetch('/api/favorites', {
+        apiFetch('/api/favorites', {
             method: 'POST', headers: {
                 'Content-Type': 'application/json', Authorization: `Bearer ${token}`,
             }, body: JSON.stringify({entityType: 'anime', entityId: +animeId}),
@@ -338,7 +339,7 @@ export default function AnimePage() {
         if (!token || libraryLoading) return;
         setLibraryLoading(true);
         try {
-            const res = await fetch('/api/anime-library', {
+            const res = await apiFetch('/api/anime-library', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -439,7 +440,7 @@ export default function AnimePage() {
                     // Fetch user reactions for all reviews if user is logged in
                     if (token) {
                         const reviewIds = arr.map(r => r.review_id);
-                        const reactionsResponse = await fetch('/api/reviews/user-reactions', {
+                        const reactionsResponse = await apiFetch('/api/reviews/user-reactions', {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`,
@@ -456,7 +457,7 @@ export default function AnimePage() {
                 } else if (token && arr.length > 0) {
                     // User is logged in but no reviews yet, still fetch reactions
                     const reviewIds = arr.map(r => r.review_id);
-                    const reactionsResponse = await fetch('/api/reviews/user-reactions', {
+                    const reactionsResponse = await apiFetch('/api/reviews/user-reactions', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -595,7 +596,7 @@ export default function AnimePage() {
             // Re-fetch user reactions for the updated reviews
             if (token && arr.length > 0) {
                 const reviewIds = arr.map(r => r.review_id);
-                const reactionsResponse = await fetch('/api/reviews/user-reactions', {
+                const reactionsResponse = await apiFetch('/api/reviews/user-reactions', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -658,7 +659,7 @@ export default function AnimePage() {
             // Re-fetch user reactions for the updated reviews
             if (token && arr.length > 0) {
                 const reviewIds = arr.map(r => r.review_id);
-                const reactionsResponse = await fetch('/api/reviews/user-reactions', {
+                const reactionsResponse = await apiFetch('/api/reviews/user-reactions', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

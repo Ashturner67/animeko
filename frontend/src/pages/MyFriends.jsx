@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiFetch } from '../utils/api';
 import placeholderImg from '../images/image_not_available.jpg';
 import defaultAvatar from '../images/default_avatar.svg';
 import Recommendations from '../components/Recommendations';
@@ -33,13 +34,13 @@ export default function MyFriends() {
                 setError('');
 
                 const [incomingRes, friendsRes, sentRes] = await Promise.all([
-                    fetch('/api/friends/requests', {
+                    apiFetch('/api/friends/requests', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('/api/friends', {
+                    apiFetch('/api/friends', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('/api/friends/requests/sent', {
+                    apiFetch('/api/friends/requests/sent', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
                 ]);
@@ -138,7 +139,7 @@ export default function MyFriends() {
 
             // If request was accepted, update friends list
             if (action === 'accept') {
-                const friendsResponse = await fetch('/api/friends', {
+                const friendsResponse = await apiFetch('/api/friends', {
                     headers: { 
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -218,7 +219,7 @@ export default function MyFriends() {
             }
 
             // Update friends list
-            const friendsResponse = await fetch('/api/friends', {
+            const friendsResponse = await apiFetch('/api/friends', {
                 headers: { 
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

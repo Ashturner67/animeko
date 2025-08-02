@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../utils/api';
 import defaultAvatar from '../images/default_avatar.svg';
 import placeholderImg from '../images/image_not_available.jpg';
 import '../styles/Recommendations.css';
@@ -24,10 +25,10 @@ export default function Recommendations() {
                 setError('');
 
                 const [sentRes, receivedRes] = await Promise.all([
-                    fetch('/api/recommendations/sent', {
+                    apiFetch('/api/recommendations/sent', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('/api/recommendations/received', {
+                    apiFetch('/api/recommendations/received', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
                 ]);
@@ -86,7 +87,7 @@ export default function Recommendations() {
     // Recommend again (update existing recommendation)
     const recommendAgain = async (recommendation) => {
         try {
-            const response = await fetch('/api/recommendations', {
+            const response = await apiFetch('/api/recommendations', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -108,7 +109,7 @@ export default function Recommendations() {
             setTimeout(() => setMessage(''), 3000);
 
             // Refresh sent recommendations to show updated timestamp
-            const sentRes = await fetch('/api/recommendations/sent', {
+            const sentRes = await apiFetch('/api/recommendations/sent', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (sentRes.ok) {

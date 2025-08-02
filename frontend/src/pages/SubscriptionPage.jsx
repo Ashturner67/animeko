@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiFetch } from '../utils/api';
 import '../styles/SubscriptionPage.css';
 
 const SubscriptionPage = () => {
@@ -16,7 +17,7 @@ const SubscriptionPage = () => {
       if (!token) return;
       
       try {
-        const response = await fetch('/api/subscriptions/current', {
+        const response = await apiFetch('/api/subscriptions/current', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -83,7 +84,7 @@ const SubscriptionPage = () => {
           console.log('Sending request to create transaction:', requestBody);
           console.log('Using token:', token ? 'Token present' : 'No token');
           
-          const apiResponse = await fetch('/api/subscriptions/create-transaction', {
+          const apiResponse = await apiFetch('/api/subscriptions/create-transaction', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 
 const YouTubePlayer = ({ 
     videoId, 
@@ -32,7 +33,7 @@ const YouTubePlayer = ({
         };
 
         try {
-            const response = await fetch('/api/watch/progress', {
+            const response = await apiFetch('/api/watch/progress', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

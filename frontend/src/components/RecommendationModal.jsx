@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import defaultAvatar from '../images/default_avatar.svg';
 import '../styles/RecommendationModal.css';
 
@@ -38,7 +39,7 @@ const RecommendationModal = ({ anime, onClose, onRecommendationSent }) => {
         const fetchFriends = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/friends', {
+                const response = await apiFetch('/api/friends', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -96,7 +97,7 @@ const RecommendationModal = ({ anime, onClose, onRecommendationSent }) => {
 
             console.log('Request body:', requestBody);
 
-            const response = await fetch('/api/recommendations', {
+            const response = await apiFetch('/api/recommendations', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
