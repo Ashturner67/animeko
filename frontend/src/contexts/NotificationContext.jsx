@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useState, useEff            newSocket.on('notificationDeleted', (notificationId) => {
-                setNotifications(prev => prev.filter(n => n.id !== notificationId));
-            });om 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { io } from 'socket.io-client';
 import { API_BASE_URL, SOCKET_URL } from '../utils/api';
@@ -60,10 +58,8 @@ export const NotificationProvider = ({ children }) => {
             });
 
             newSocket.on('notificationDeleted', ({ notificationId }) => {
-                console.log('🗑️ Received notification deletion event for ID:', notificationId);
                 setNotifications(prev => {
                     const filtered = prev.filter(notification => notification.id !== notificationId);
-                    console.log('📝 Removed notification from list. Previous length:', prev.length, '→ New length:', filtered.length);
                     return filtered;
                 });
             });
@@ -106,7 +102,6 @@ export const NotificationProvider = ({ children }) => {
 
         try {
             setLoading(true);
-            console.log('📥 Fetching notifications, page:', page, 'limit:', limit);
             const response = await fetch(`${API_BASE_URL}/notifications?page=${page}&limit=${limit}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -116,8 +111,6 @@ export const NotificationProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📥 Notifications fetched:', data.notifications.length, 'notifications');
-                console.log('📥 Unread notifications:', data.notifications.filter(n => !n.is_read).length);
                 if (page === 1) {
                     setNotifications(data.notifications);
                 } else {
