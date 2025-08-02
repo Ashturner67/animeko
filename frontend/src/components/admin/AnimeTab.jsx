@@ -260,10 +260,17 @@ const AnimeTab = ({searchQuery}) => {
                 }))
             };
 
-            const result = await apiFetch(apiPath, {
+            const response = await apiFetch(apiPath, {
                 method,
                 body: JSON.stringify(requestBody)
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                showError(errorData.message || (editingId ? 'Failed to update anime' : 'Failed to add anime'));
+                setLoading(false);
+                return;
+            }
 
             await fetchAnime();
             

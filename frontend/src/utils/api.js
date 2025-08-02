@@ -16,7 +16,7 @@ export const buildApiUrl = (endpoint) => {
   return endpoint.startsWith('/api') ? endpoint : `/api/${endpoint.replace(/^\//, '')}`;
 };
 
-// Enhanced fetch wrapper that automatically handles the base URL
+// Enhanced fetch wrapper that automatically handles the base URL and maintains backward compatibility
 export const apiFetch = async (endpoint, options = {}) => {
   let url;
   
@@ -42,12 +42,8 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP error ${response.status}`);
-  }
-
-  return await response.json();
+  // Return the response object directly - let each call handle .ok and .json() as before
+  return response;
 };
 
 // Get auth headers if user is logged in

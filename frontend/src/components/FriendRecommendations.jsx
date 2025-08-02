@@ -30,10 +30,15 @@ const FriendRecommendations = ({ limit = 10 }) => {
                 endpoint += `?limit=${limit}`;
             }
 
-            const data = await apiFetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: 'GET'
             });
 
+            if (!response.ok) {
+                throw new Error('Failed to fetch recommendations');
+            }
+
+            const data = await response.json();
             setRecommendations(data);
         } catch (err) {
             console.error('Error fetching recommendations:', err);
@@ -45,9 +50,13 @@ const FriendRecommendations = ({ limit = 10 }) => {
 
     const dismissRecommendation = async (recommendationId) => {
         try {
-            await apiFetch(`/api/recommendations/${recommendationId}/dismiss`, {
+            const response = await apiFetch(`/api/recommendations/${recommendationId}/dismiss`, {
                 method: 'PUT'
             });
+
+            if (!response.ok) {
+                throw new Error('Failed to dismiss recommendation');
+            }
 
             // Remove the dismissed recommendation from the list
             setRecommendations(prev => 

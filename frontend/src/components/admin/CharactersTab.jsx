@@ -205,7 +205,7 @@ const CharactersTab = ({ searchQuery }) => {
         const method = editingId ? 'PUT' : 'POST';
 
         try {
-            const result = await apiFetch(apiPath, {
+            const response = await apiFetch(apiPath, {
                 method,
                 body: JSON.stringify({
                     name: formData.name.trim(),
@@ -219,6 +219,11 @@ const CharactersTab = ({ searchQuery }) => {
                     }))
                 })
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || (editingId ? 'Failed to update character' : 'Failed to add character'));
+            }
 
             await fetchCharacters();
             

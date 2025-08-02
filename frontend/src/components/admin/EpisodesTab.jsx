@@ -145,10 +145,17 @@ const EpisodesTab = ({ searchQuery }) => {
                 premium_only: formData.premium_only
             };
 
-            const result = await apiFetch(apiPath, {
+            const response = await apiFetch(apiPath, {
                 method,
                 body: JSON.stringify(requestBody)
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                showError(errorData.message || (editingId ? 'Failed to update episode' : 'Failed to add episode'));
+                setLoading(false);
+                return;
+            }
 
             await fetchEpisodes();
             

@@ -83,7 +83,7 @@ const CompanyTab = ({searchQuery}) => {
         const method = editingId ? 'PUT' : 'POST';
 
         try {
-            const result = await apiFetch(apiPath, {
+            const response = await apiFetch(apiPath, {
                 method,
                 body: JSON.stringify({
                     name: formData.name.trim(),
@@ -91,6 +91,13 @@ const CompanyTab = ({searchQuery}) => {
                     founded: formData.founded || null
                 })
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                showError(errorData.message || (editingId ? 'Failed to update company' : 'Failed to add company'));
+                setLoading(false);
+                return;
+            }
 
             await fetchCompanies();
             

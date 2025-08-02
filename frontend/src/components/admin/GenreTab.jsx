@@ -101,12 +101,20 @@ const GenreTab = ({searchQuery}) => {
             };
             console.log('Request payload:', requestBody);
             
-            const result = await apiFetch(apiPath, {
+            const response = await apiFetch(apiPath, {
                 method,
                 body: JSON.stringify(requestBody)
             });
 
-            console.log('API response:', result);
+            console.log('API response:', response);
+
+            if (!response.ok) {
+                const responseData = await response.json().catch(() => ({}));
+                const errorMsg = responseData.message || 
+                    (editingId ? 'Failed to update genre' : 'Failed to add genre');
+                console.error('API error:', errorMsg);
+                throw new Error(errorMsg);
+            }
 
             console.log('Genre operation successful, refreshing list...');
             await fetchGenres();
