@@ -188,17 +188,6 @@ router.put('/:id', authenticate, async (req, res) => {
 // 8) GET /api/lists/anime/:animeId   (get lists containing an anime)
 // ──────────────────────────────────────────────────
 router.get('/anime/:animeId', optionalAuth, async (req, res) => {
-        
-    // Set CORS headers
-    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
     const { animeId } = req.params;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
