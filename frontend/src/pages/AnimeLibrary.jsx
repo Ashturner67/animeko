@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { fetchUserLibrary, VisibilityError, NotFoundError } from '../utils/api';
+import { apiFetch, fetchUserLibrary, VisibilityError, NotFoundError } from '../utils/api';
 import VisibilityRestriction from '../components/VisibilityRestriction';
 import '../styles/AnimeLibrary.css';
 import placeholder from '../images/image_not_available.jpg';

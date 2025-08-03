@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AiOutlineLike, AiOutlineDislike, AiFillLike, AiFillDislike } from 'react-icons/ai';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import './ReviewReactionButtons.css';
 
 const ReviewReactionButtons = ({ reviewId, initialLikes = 0, initialDislikes = 0, userReaction = null, onReactionChange = null }) => {

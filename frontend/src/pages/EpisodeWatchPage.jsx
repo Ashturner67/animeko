@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiFetch } from '../utils/api';
 import YouTubePlayer from '../components/YouTubePlayer';
 import '../styles/EpisodeWatchPage.css';
 

@@ -4,7 +4,7 @@ import {Link, useParams, useNavigate} from 'react-router-dom';
 import {useAuth} from '../contexts/AuthContext';
 import VisibilityToggle from '../components/VisibilityToggle';
 import VisibilityRestriction from '../components/VisibilityRestriction';
-import { fetchList, VisibilityError, NotFoundError } from '../utils/api';
+import { apiFetch, fetchList, VisibilityError, NotFoundError } from '../utils/api';
 import placeholderImg from '../images/image_not_available.jpg';
 import '../styles/ListDetail.css';
 
