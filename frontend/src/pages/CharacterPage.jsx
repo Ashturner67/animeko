@@ -90,14 +90,16 @@ export default function CharacterPage() {
             <div className="character-meta">
                 <div className="character-meta-header spaced-header">
                     <h2 className="character-name wrap-name">{name}</h2>
-                    <button
-                        className={`favorite-btn ${isFavorite ? 'favorited' : ''}`}
-                        onClick={toggleFavorite}
-                        disabled={favLoading}
-                    >
-                        <div className="favorite-icon">{isFavorite ? '❤️' : '🤍'}</div>
-                        <div className="favorite-text">{favLoading ? '…' : isFavorite ? 'Remove from Favorite' : 'Add to Favorites'}</div>
-                    </button>
+                    {token && (
+                        <button
+                            className={`favorite-btn ${isFavorite ? 'favorited' : ''}`}
+                            onClick={toggleFavorite}
+                            disabled={favLoading}
+                        >
+                            <div className="favorite-icon">{isFavorite ? '❤️' : '🤍'}</div>
+                            <div className="favorite-text">{favLoading ? '…' : isFavorite ? 'Remove from Favorite' : 'Add to Favorites'}</div>
+                        </button>
+                    )}
                 </div>
                 {description && <p className="character-desc">{description}</p>}
                 <p className="character-va">

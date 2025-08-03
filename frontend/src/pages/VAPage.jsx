@@ -100,14 +100,16 @@ export default function VAPage() {
             <div className="va-info">
                 <div className="va-info-header spaced-header">
                     <h2 className="va-name wrap-name">{name}</h2>
-                    <button
-                        className={`favorite-btn ${isFavorite ? 'favorited' : ''}`}
-                        onClick={toggleFavorite}
-                        disabled={favLoading}
-                    >
-                        <div className="favorite-icon">{isFavorite ? '❤️' : '🤍'}</div>
-                        <div className="favorite-text">{favLoading ? '…' : isFavorite ? 'Remove from Favorite' : 'Add to Favorites'}</div>
-                    </button>
+                    {token && (
+                        <button
+                            className={`favorite-btn ${isFavorite ? 'favorited' : ''}`}
+                            onClick={toggleFavorite}
+                            disabled={favLoading}
+                        >
+                            <div className="favorite-icon">{isFavorite ? '❤️' : '🤍'}</div>
+                            <div className="favorite-text">{favLoading ? '…' : isFavorite ? 'Remove from Favorite' : 'Add to Favorites'}</div>
+                        </button>
+                    )}
                 </div>
                 {bio && <p className="va-bio">{bio}</p>}
             </div>
