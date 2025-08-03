@@ -3,21 +3,33 @@ import pool from '../db.js';
 class Friendship {
     static async sendFriendRequest({ requesterId, addresseeId }) {
         const existingRelation = await pool.query(`
-            SELECT status
+            SELECT status, requester_id, addressee_id
             FROM friendship
             WHERE (requester_id = $1 AND addressee_id = $2)
                OR (requester_id = $2 AND addressee_id = $1)
         `, [requesterId, addresseeId]);
 
         if (existingRelation.rows.length > 0) {
-            const status = existingRelation.rows[0].status;
+            const friendship = existingRelation.rows[0];
+            const status = friendship.status;
+            
             if (status === 'accepted') {
                 throw new Error("You are already friends");
             } else if (status === 'pending') {
                 throw new Error("Friend request already sent or received");
+            } else if (status === 'rejected') {
+                // If the request was rejected, update the existing record with new requester
+                await pool.query(`
+                    UPDATE friendship 
+                    SET requester_id = $1, addressee_id = $2, status = 'pending', created_at = NOW()
+                    WHERE (requester_id = $3 AND addressee_id = $4)
+                       OR (requester_id = $4 AND addressee_id = $3)
+                `, [requesterId, addresseeId, friendship.requester_id, friendship.addressee_id]);
+                return { message: 'Request sent' };
             }
         }
 
+        // No existing relationship, create new request
         await pool.query(`INSERT INTO friendship (requester_id, addressee_id, status)
                           VALUES ($1, $2, 'pending')`, [requesterId, addresseeId]);
         return { message: 'Request sent' };
@@ -184,6 +196,14 @@ class Friendship {
             FROM friendship
             WHERE (requester_id = $1 AND addressee_id = $2)
                OR (requester_id = $2 AND addressee_id = $1)
+            ORDER BY 
+                CASE 
+                    WHEN status = 'accepted' THEN 1
+                    WHEN status = 'pending' THEN 2
+                    WHEN status = 'rejected' THEN 3
+                    ELSE 4
+                END,
+                created_at DESC
         `, [userId1, userId2]);
 
         if (result.rows.length === 0) {
