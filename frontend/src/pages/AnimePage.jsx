@@ -45,7 +45,8 @@ export default function AnimePage() {
     const [reviewError, setReviewError] = useState(null);
     const [submittingReview, setSubmittingReview] = useState(false);
     const [showReviewForm, setShowReviewForm] = useState(false);
-    
+    const [hoverRating, setHoverRating] = useState(0);
+
     // Review reactions state
     const [userReactions, setUserReactions] = useState({});
     
@@ -535,6 +536,14 @@ export default function AnimePage() {
         setReviewForm((form) => ({...form, rating: starIndex}));
     };
 
+    const handleStarHover = (starIndex) => {
+        setHoverRating(starIndex);
+    };
+
+    const handleStarLeave = () => {
+        setHoverRating(0);
+    };
+
     const handleReviewChange = (e) => {
         const {name, value} = e.target;
         setReviewForm((form) => ({
@@ -610,8 +619,8 @@ export default function AnimePage() {
 
     // Handle delete review
     const handleDeleteReview = async () => {
-        if (!token || !userReview) {
-            setReviewError('You must be logged in and have a review to delete.');
+        if (!token || (!userReview && reviewForm.rating === 0)) {
+            setReviewError('You must be logged in and have a review or rating to delete.');
             return;
         }
 
@@ -1011,13 +1020,18 @@ export default function AnimePage() {
                             {user ? (
                                 <form onSubmit={handleSubmitReview}>
                                     <div className="star-selection">
-                                        {[1, 2, 3, 4, 5].map((i) => (<span
-                                            key={i}
-                                            className={i <= reviewForm.rating ? 'star selected' : 'star'}
-                                            onClick={() => handleStarClick(i)}
-                                        >
-                                            ★
-                                        </span>))}
+                                        {[1, 2, 3, 4, 5].map((i) => {
+                                            const isSelected = i <= (hoverRating > 0 ? hoverRating : reviewForm.rating);
+                                            return (<span
+                                                key={i}
+                                                className={isSelected ? 'star selected' : 'star'}
+                                                onClick={() => handleStarClick(i)}
+                                                onMouseEnter={() => handleStarHover(i)}
+                                                onMouseLeave={handleStarLeave}
+                                            >
+                                                ★
+                                            </span>);
+                                        })}
                                     </div>
                                     <label>
                                         Comment:
@@ -1033,14 +1047,14 @@ export default function AnimePage() {
                                     <button type="submit" disabled={reviewLoading}>
                                         {userReview ? 'Update Review' : 'Submit Review'}
                                     </button>
-                                    {userReview && (
+                                    {(userReview || reviewForm.rating > 0) && (
                                         <button
                                             type="button"
                                             className="delete-review-btn"
                                             onClick={handleDeleteReview}
                                             disabled={reviewLoading}
                                         >
-                                            Delete Review
+                                            {userReview && userReview.content ? 'Delete Review' : 'Delete Rating'}
                                         </button>
                                     )}
                                 </form>

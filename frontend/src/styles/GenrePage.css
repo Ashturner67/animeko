@@ -35,40 +35,81 @@
 /* Anime card grid */
 .genre-anime-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Adjusted to match company-anime-grid */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1rem;
     max-width: 800px;
     width: 100%;
 }
 
-.company-anime-card { /* Renamed from .genre-anime-card */
-    background: #fafafa;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    text-decoration: none;
-    color: inherit;
-    padding: 0.5rem;
-    text-align: center;
+/* Individual anime item container */
+.company-anime-item {
     display: flex;
     flex-direction: column;
+    background: #fafafa;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: inherit;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    height: auto;
+}
+
+.company-anime-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Poster container */
+.company-anime-poster {
+    width: 100%;
+    height: 120px;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
     align-items: center;
+    justify-content: center;
 }
 
-.anime-thumb {
-    width: 60px; /* ¼ of 250px poster */
-    height: 90px; /* ¼ of 375px poster */
-    object-fit: cover;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
+/* Anime poster image */
+.company-anime-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
 }
 
-.anime-title {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #333;
-    white-space: normal; /* Allow text to wrap */
-    overflow: visible; /* Ensure content is not hidden */
-    text-overflow: clip; /* Prevent ellipsis */
+/* Anime title */
+.company-anime-item .company-anime-title {
+    margin: 0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    
+    /* Proper text wrapping with ellipsis after 2 lines */
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    
+    /* Ensure consistent height for 2 lines */
+    min-height: 2.6em !important; /* 1.3 line-height × 2 lines */
+    max-height: 2.6em !important;
+    
+    /* Reset any inherited styles */
+    white-space: normal !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .no-anime {
@@ -101,19 +142,69 @@
     color: #eee;
 }
 
-.dark-mode .company-anime-card { /* Renamed from .genre-anime-card */
-    background: #444;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+.dark-mode .company-anime-item {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.dark-mode .company-anime-card:hover {
-    background: #555;
+.dark-mode .company-anime-item:hover {
+    background: #374151;
+    border-color: #6b7280;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-.dark-mode .anime-title {
-    color: #eee;
+.dark-mode .company-anime-title {
+    color: #f7fafc;
 }
 
 .dark-mode .genre-error {
     color: #ff6b6b;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .genre-anime-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+    
+    .company-anime-item {
+        min-height: 240px;
+        padding: 0.75rem;
+    }
+    
+    .company-anime-poster {
+        height: 140px;
+    }
+    
+    .company-anime-title {
+        font-size: 0.9rem;
+        min-height: 3.6em;
+        max-height: 3.6em;
+    }
+}
+
+@media (max-width: 480px) {
+    .genre-anime-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .company-anime-item {
+        min-height: 220px;
+        padding: 0.5rem;
+    }
+    
+    .company-anime-poster {
+        height: 120px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .company-anime-title {
+        font-size: 0.85rem;
+        min-height: 3.4em;
+        max-height: 3.4em;
+    }
 }

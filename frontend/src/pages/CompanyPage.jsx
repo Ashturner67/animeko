@@ -56,14 +56,16 @@ export default function CompanyPage() {
             {animeList.map(({animeId, title, imageUrl}) => (<Link
                 to={`/anime/${animeId}`}
                 key={animeId}
-                className="company-anime-card"
+                className="company-anime-item"
             >
-                <img
-                    src={imageUrl || placeholder}
-                    alt={`${title} placeholder`}
-                    className="anime-thumb"
-                />
-                <p className="anime-title">{title}</p>
+                <div className="company-anime-poster">
+                    <img
+                        src={imageUrl || placeholder}
+                        alt={`${title} poster`}
+                        className="company-anime-image"
+                    />
+                </div>
+                <h4 className="company-anime-title">{title}</h4>
             </Link>))}
         </div>) : (<p className="no-anime">No anime found for this company.</p>)}
     </div>);

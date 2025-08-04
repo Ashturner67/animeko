@@ -5,10 +5,6 @@ body.dark-mode {
     color: #e0e0e0; /* Light grey text */
 }
 
-/* Navigation Bar */
-body.dark-mode .App-header {
-}
-
 body.dark-mode .brand {
     color: #61dafb; /* Keep brand color or adjust for dark mode */
 }
@@ -151,11 +147,6 @@ body.dark-mode .star-selection .star {
 
 body.dark-mode .star-selection .star.selected {
     color: #ffb400;
-}
-
-body.dark-mode .star-selection .star:hover,
-body.dark-mode .star-selection .star:hover ~ .star {
-    color: #ffd54f;
 }
 
 body.dark-mode textarea {

@@ -1074,12 +1074,6 @@
     color: #ffb400; /* golden */
 }
 
-.star:hover,
-.star:hover ~ .star {
-    /* Hover any star, color all stars up to that point: */
-    color: #ffd54f;
-}
-
 .your-review-form label {
     font-size: 0.95rem;
     margin-bottom: 0.5rem;

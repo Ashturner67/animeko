@@ -67,14 +67,16 @@ export default function GenrePage() {
                     <Link
                         to={`/anime/${anime.id || anime.anime_id}`}
                         key={anime.id || anime.anime_id}
-                        className="company-anime-card" /* Changed class name */
+                        className="company-anime-item"
                     >
-                        <img
-                            src={anime.imageUrl || placeholder} /* Use anime.imageUrl */
-                            alt={`${anime.title} placeholder`}
-                            className="anime-thumb"
-                        />
-                        <p className="anime-title">{anime.title}</p>
+                        <div className="company-anime-poster">
+                            <img
+                                src={anime.imageUrl || placeholder}
+                                alt={`${anime.title} poster`}
+                                className="company-anime-image"
+                            />
+                        </div>
+                        <h4 className="company-anime-title">{anime.title}</h4>
                     </Link>
                 ))}
             </div>
