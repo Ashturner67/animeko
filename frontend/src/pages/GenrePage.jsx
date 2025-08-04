@@ -1,5 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../utils/api';
 import placeholder from '../images/image_not_available.jpg';
 import '../styles/GenrePage.css';
 import { useTheme } from '../contexts/ThemeContext';
